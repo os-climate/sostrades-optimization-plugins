@@ -31,5 +31,5 @@
         ".flake8",
         ".prettierignore"
     ],
-    "airbus_rev_commit": "fb7c7e2"
+    "airbus_rev_commit": "d833fdf740389587b876e30f084631430687fa5a"
 }
