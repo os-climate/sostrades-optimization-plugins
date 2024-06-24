@@ -1,0 +1,35 @@
+{
+    "extension_to_ignore": [
+        "pkl",
+        "png",
+        "jpg",
+        "csv",
+        "md",
+        "markdown",
+        "avif",
+        "json",
+        "in",
+        "gitignore",
+        "cfg",
+        "puml",
+        "pdf",
+        "txt",
+        "ipynb",
+        "zip",
+        "rst",
+        "ini",
+        "coveragerc",
+        "yaml",
+        "bat",
+        "tex",
+        "toml"
+    ],
+    "files_to_ignore": [
+        "LICENSE",
+        ".readthedocs",
+        "docs/Makefile",
+        ".flake8",
+        ".prettierignore"
+    ],
+    "airbus_rev_commit": "fb7c7e2"
+}
