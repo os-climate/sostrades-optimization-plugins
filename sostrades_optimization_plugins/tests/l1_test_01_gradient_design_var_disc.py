@@ -17,14 +17,13 @@ from os.path import dirname
 
 import numpy as np
 import pandas as pd
-
-from sostrades_optimization_plugins.models.design_var.design_var_disc import (
-    DesignVarDiscipline
-)
-
 from sostrades_core.execution_engine.execution_engine import ExecutionEngine
 from sostrades_core.tests.core.abstract_jacobian_unit_test import (
     AbstractJacobianUnittest,
+)
+
+from sostrades_optimization_plugins.models.design_var.design_var_disc import (
+    DesignVarDiscipline,
 )
 
 

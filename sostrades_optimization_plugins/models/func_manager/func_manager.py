@@ -15,9 +15,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 import numpy as np
-
 from sostrades_core.tools.base_functions.exp_min import compute_func_with_exp_min
-from sostrades_optimization_plugins.tools.cst_manager.func_manager_common import smooth_maximum
+
+from sostrades_optimization_plugins.tools.cst_manager.func_manager_common import (
+    smooth_maximum,
+)
 
 
 class FunctionManager:

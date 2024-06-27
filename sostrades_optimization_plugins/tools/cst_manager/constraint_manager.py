@@ -19,13 +19,17 @@ import re
 
 import numpy as np
 from matplotlib import pyplot as plt
-
-from sostrades_optimization_plugins.models.func_manager.func_manager import FunctionManager
 from sostrades_core.tools.base_functions.exp_min import (
     compute_dfunc_with_exp_min,
     compute_func_with_exp_min,
 )
-from sostrades_optimization_plugins.tools.cst_manager.constraint_object import ConstraintObject
+
+from sostrades_optimization_plugins.models.func_manager.func_manager import (
+    FunctionManager,
+)
+from sostrades_optimization_plugins.tools.cst_manager.constraint_object import (
+    ConstraintObject,
+)
 
 # pylint: disable=no-value-for-parameter
 

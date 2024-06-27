@@ -16,9 +16,8 @@ limitations under the License.
 '''
 import numpy as np
 from pandas import DataFrame, concat
-
-from sostrades_core.tools.bspline.bspline import BSpline
 from sostrades_core.execution_engine.sos_wrapp import SoSWrapp
+from sostrades_core.tools.bspline.bspline import BSpline
 
 
 class DesignVar(object):

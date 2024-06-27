@@ -18,14 +18,16 @@ from os.path import dirname
 
 import numpy as np
 import pandas as pd
-
 from sostrades_core.execution_engine.execution_engine import ExecutionEngine
-from sostrades_optimization_plugins.models.func_manager.func_manager import FunctionManager
-from sostrades_optimization_plugins.models.func_manager.func_manager_disc import (
-    FunctionManagerDisc,
-)
 from sostrades_core.tests.core.abstract_jacobian_unit_test import (
     AbstractJacobianUnittest,
+)
+
+from sostrades_optimization_plugins.models.func_manager.func_manager import (
+    FunctionManager,
+)
+from sostrades_optimization_plugins.models.func_manager.func_manager_disc import (
+    FunctionManagerDisc,
 )
 
 AGGR_TYPE = FunctionManagerDisc.AGGR_TYPE

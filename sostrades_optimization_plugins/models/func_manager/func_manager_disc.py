@@ -25,20 +25,22 @@ import numpy as np
 import pandas as pd
 from numpy import asarray, float64, ndarray
 from plotly import graph_objects as go
-
-from sostrades_optimization_plugins.models.func_manager.func_manager import FunctionManager
 from sostrades_core.execution_engine.optim_manager_disc import OptimManagerDisc
 from sostrades_core.tools.base_functions.exp_min import (
     compute_dfunc_with_exp_min,
     compute_func_with_exp_min,
 )
-from sostrades_optimization_plugins.tools.cst_manager.func_manager_common import (
-    get_dsmooth_dvariable,
-    smooth_maximum,
-)
 from sostrades_core.tools.post_processing.charts.chart_filter import ChartFilter
 from sostrades_core.tools.post_processing.plotly_native_charts.instantiated_plotly_native_chart import (
     InstantiatedPlotlyNativeChart,
+)
+
+from sostrades_optimization_plugins.models.func_manager.func_manager import (
+    FunctionManager,
+)
+from sostrades_optimization_plugins.tools.cst_manager.func_manager_common import (
+    get_dsmooth_dvariable,
+    smooth_maximum,
 )
 
 warnings.simplefilter(action='ignore', category=FutureWarning)

@@ -17,6 +17,7 @@ limitations under the License.
 import unittest
 
 from sostrades_core.execution_engine.execution_engine import ExecutionEngine
+
 from sostrades_optimization_plugins.sos_processes.test.test_sellar_opt_w_func_manager.usecase import (
     Study,
 )
