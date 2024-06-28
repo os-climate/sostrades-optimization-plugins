@@ -13,11 +13,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-from os import environ
-
-environ['DUMP_JACOBIAN_UNIT_TEST'] = 'tRUE'
 import logging
 from copy import deepcopy
+from os import environ
 from os.path import dirname
 
 import numpy as np
@@ -36,6 +34,8 @@ from sostrades_optimization_plugins.sos_processes.test.test_sellar_opt_w_design_
 from sostrades_optimization_plugins.sos_processes.test.test_sellar_sub_opt_w_design_var.usecase import (
     Study,
 )
+
+environ['DUMP_JACOBIAN_UNIT_TEST'] = 'True'
 
 
 class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
