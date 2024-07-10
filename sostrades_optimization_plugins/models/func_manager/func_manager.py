@@ -73,11 +73,11 @@ class FunctionManager:
         t_val = type(value)
         if isinstance(value, np.ndarray):
             mod_value = value
-        elif t_val == type(np.array([0.])):
+        elif t_val is type(np.array([0.])):
             mod_value = value
-        elif t_val == type([]):
+        elif t_val is type([]):
             mod_value = np.array(value)
-        elif t_val == type(0.):
+        elif t_val is type(0.):
             mod_value = np.array(value)
         else:
             raise ValueError('Unsupported type ' + str(t_val))
