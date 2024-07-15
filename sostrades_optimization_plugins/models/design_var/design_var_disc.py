@@ -332,8 +332,8 @@ class DesignVarDiscipline(SoSWrapp):
 
     def get_chart_BSpline(self, parameter, init_xvect=False):
         """
-        Function to create post-proc for the design variables with display of the control points used to
-        calculate the B-Splines.
+        Function to create post-proc for the design variables with display of the control points used to calculate the
+        B-Splines.
         The activation/deactivation of control points is accounted for by inserting the values from the design space
         dataframe into the ctrl_pts if need be (activated_elem==False) and at the appropriate index.
         Input: parameter (name), parameter values, design_space
