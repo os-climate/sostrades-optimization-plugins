@@ -1,0 +1,1 @@
+# sostrades-optimization-plugin
