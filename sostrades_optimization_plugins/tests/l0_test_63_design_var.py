@@ -29,9 +29,7 @@ class TestDesignVar(AbstractJacobianUnittest):
     """
     DesignVar unitary test class
     """
-    def analytic_grad_entry(self):
-        return [self.test_derivative
-                ]
+    
 
     def setUp(self):
         self.study_name = 'Test'

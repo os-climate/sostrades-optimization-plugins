@@ -16,6 +16,8 @@ limitations under the License.
 '''
 
 # pylint: disable=unsubscriptable-object
+import warnings
+
 import numpy as np
 from sostrades_core.tools.base_functions.exp_min import (
     compute_dfunc_with_exp_min,
@@ -218,7 +220,7 @@ def get_dcons_smooth_dvariable_vect(cst, alpha=1E16):
     alphaxcst = alpha * cst_array
 
     max_alphax = np.amax(alphaxcst, axis=1)
-
+    warnings.filterwarnings("ignore", category=RuntimeWarning)
     k = max_alphax - max_exp
     exp_func = np.maximum(min_exp, alpha * cst_array -
                           np.repeat(k, cst_array.shape[1]).reshape(cst_array.shape))
@@ -256,4 +258,15 @@ def get_dcons_smooth_dvariable_vect(cst, alpha=1E16):
     for i in np.arange(cst_array.shape[0]):
         grad_value[i][np.logical_not(non_max_idx)[i]] = grad_val_max[i]
 
+    warnings.filterwarnings("ignore", category=RuntimeWarning)
     return grad_value
+
+
+def pseudo_abs_obj(value: np.ndarray, eps= 1e-2):
+    """compute the pseudo absolute value of x, where x is a 1dimensional array"""
+    return np.array([np.sum(np.sqrt(value ** 2 + eps ** 2) - eps)]) / len(value)
+
+
+def d_pseudo_abs_obj(value, d_value, eps=1e-2):
+    """compute the derivative of the pseudo absolute value of x, where x is a 1dimensional array"""
+    return d_value.T @  (value  / np.sqrt(value ** 2 + eps ** 2)) / len(value)

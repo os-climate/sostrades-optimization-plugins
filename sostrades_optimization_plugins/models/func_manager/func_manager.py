@@ -125,9 +125,9 @@ class FunctionManager:
             if self.functions[tag][self.FTYPE] == self.OBJECTIVE:
                 #-- smooth maximum of values return the value if it was a float
                 #-- return smooth maximum if objective was an array
-                if aggr_type == 'smax':
+                if aggr_type == self.AGGR_TYPE_SMAX:
                     res = smooth_maximum(values, alpha)
-                elif aggr_type == 'sum':
+                elif aggr_type == self.AGGR_TYPE_SUM:
                     res = values.sum()
                 else:
                     raise Exception(f"Unhandled aggr_type {aggr_type}")
@@ -136,9 +136,9 @@ class FunctionManager:
                 cst = self.cst_func_ineq(values, eps, tag)
                 res = smooth_maximum(cst, alpha)
             elif self.functions[tag][self.FTYPE] == self.EQ_CONSTRAINT:
-                if aggr_type == 'delta':
+                if aggr_type == self.AGGR_TYPE_DELTA:
                     cst = self.cst_func_eq_delta(values, eps, tag)
-                elif aggr_type == 'lin_to_quad':
+                elif aggr_type == self.AGGR_TYPE_LIN_TO_QUAD:
                     cst = self.cst_func_eq_lintoquad(values, eps, tag)
                 else:
                     cst = self.cst_func_eq(values)
