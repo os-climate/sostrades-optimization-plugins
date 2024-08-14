@@ -29,7 +29,7 @@ class TestDesignVar(AbstractJacobianUnittest):
     """
     DesignVar unitary test class
     """
-    
+
 
     def setUp(self):
         self.study_name = 'Test'

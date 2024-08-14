@@ -42,7 +42,7 @@ class TestDesignVar(AbstractJacobianUnittest):
     DesignVar test class
     """
 
-    
+
 
     def setUp(self):
 
