@@ -42,6 +42,8 @@ class TestDesignVar(AbstractJacobianUnittest):
     DesignVar test class
     """
 
+    def analytic_grad_entry(self):
+        return []
 
 
     def setUp(self):

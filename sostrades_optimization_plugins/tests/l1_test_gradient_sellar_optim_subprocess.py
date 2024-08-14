@@ -56,6 +56,8 @@ class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
     """
 
 
+    def analytic_grad_entry(self):
+        return []
 
     def setUp(self):
         self.name = 'Test'
