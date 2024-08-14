@@ -33,7 +33,7 @@ class GradiantAssetDiscTestCase(AbstractJacobianUnittest):
     """
     np.random.seed(42)
 
-    
+
 
     def setUp(self):
         """Initialize"""

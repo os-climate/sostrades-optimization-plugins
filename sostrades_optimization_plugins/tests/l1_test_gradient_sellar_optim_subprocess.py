@@ -55,7 +55,7 @@ class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
     - test_11_gradient_subprocess_wo_dvar_fmanager_flatten_local_data : Test Sellar without design var nor func manager
     """
 
-    
+
 
     def setUp(self):
         self.name = 'Test'
