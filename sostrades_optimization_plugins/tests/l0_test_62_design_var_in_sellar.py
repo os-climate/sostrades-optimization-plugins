@@ -42,6 +42,8 @@ class TestDesignVar(AbstractJacobianUnittest):
     DesignVar test class
     """
 
+    def analytic_grad_entry(self):
+        return []
 
 
     def setUp(self):
@@ -168,9 +170,3 @@ class TestDesignVar(AbstractJacobianUnittest):
                             discipline=disc.mdo_discipline_wrapp.mdo_discipline, step=1e-15, inputs=input_names,
                             outputs=output_names, derr_approx='complex_step')
 
-
-if '__main__' == __name__:
-    cls = TestDesignVar()
-    cls.setUp()
-    cls.test_01_check_execute()
-    cls.test_derivative()

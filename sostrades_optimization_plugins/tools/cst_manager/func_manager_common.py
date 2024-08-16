@@ -270,3 +270,47 @@ def pseudo_abs_obj(value: np.ndarray, eps= 1e-2):
 def d_pseudo_abs_obj(value, d_value, eps=1e-2):
     """compute the derivative of the pseudo absolute value of x, where x is a 1dimensional array"""
     return d_value.T @  (value  / np.sqrt(value ** 2 + eps ** 2)) / len(value)
+
+
+def keep_positive_only(value: np.ndarray):
+    """values must be a 1dimensional np array"""
+    result = np.maximum(value, 0)
+    return result.mean()
+
+
+def keep_negative_only(value: np.ndarray):
+    """values must be a 1dimensional np array"""
+    result = np.minimum(value, 0)
+    return result.mean()
+
+
+def derivative_d_keep_positive_only(value: np.ndarray):
+    """values must be a 1dimensional np array"""
+    return ((value > 0) * 1) / len(value)
+
+
+def derivative_d_keep_negative_only(value: np.ndarray):
+    """values must be a 1dimensional np array"""
+    return ((value < 0) * 1) / len(value)
+
+
+def keep_positive_only_square(value: np.ndarray):
+    """values must be a 1dimensional np array"""
+    result = np.maximum(value, 0) ** 2
+    return result.mean()
+
+
+def keep_negative_only_square(value: np.ndarray):
+    """values must be a 1dimensional np array"""
+    result = np.minimum(value, 0) ** 2
+    return result.mean()
+
+
+def derivative_d_keep_positive_only_square(value: np.ndarray):
+    """values must be a 1dimensional np array"""
+    return ((value > 0) * 1) * value * 2/ len(value)
+
+
+def derivative_d_keep_negative_only_square(value: np.ndarray):
+    """values must be a 1dimensional np array"""
+    return ((value < 0) * 1) * value * 2/ len(value)
