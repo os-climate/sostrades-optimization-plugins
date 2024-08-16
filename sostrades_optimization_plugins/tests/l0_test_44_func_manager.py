@@ -273,6 +273,8 @@ class TestFuncManager(unittest.TestCase):
 
         cst3 = base_df.copy()
         cst3['cst3_values'] = np.array([-10., 0.2, -5.])
+        cst0 = base_df.copy()
+        cst0['cst0_values'] = np.array([-10., 0.2, -5.])
         eqcst1 = base_df.copy()
         eqcst1['eqcst1_values'] = np.array([-10., 10., -5.])
         eqcst2 = base_df.copy()
@@ -281,12 +283,12 @@ class TestFuncManager(unittest.TestCase):
         # -- ~GUI inputs: selection of functions
 
         func_df = pd.DataFrame(columns=['variable', 'ftype', 'weight'])
-        func_df['variable'] = ['cst1', 'cst2', 'cst3',
+        func_df['variable'] = ['cst0','cst1', 'cst2', 'cst3',
                                'eqcst1', 'eqcst2', 'obj1', 'obj2']
-        func_df['ftype'] = [INEQ_CONSTRAINT, INEQ_CONSTRAINT,
+        func_df['ftype'] = [INEQ_CONSTRAINT, INEQ_CONSTRAINT, INEQ_CONSTRAINT,
                             INEQ_CONSTRAINT, EQ_CONSTRAINT, EQ_CONSTRAINT, OBJECTIVE, OBJECTIVE]
-        func_df['weight'] = [1., 1., 1., 1, 1, 0.8, 0.2]
-        func_df['aggr'] = "sum"
+        func_df['weight'] = [1, 1., 1., 1., 1, 1, 0.8, 0.2]
+        func_df['aggr'] = [FunctionManager.INEQ_NEGATIVE_WHEN_SATIFIED] + [FunctionManager.AGGR_TYPE_SUM] * 7
         func_df['parent'] = 'obj'
         func_df['namespace'] = ''
 
@@ -298,6 +300,7 @@ class TestFuncManager(unittest.TestCase):
         values_dict[prefix + 'cst1'] = cst1
         values_dict[prefix + 'cst2'] = cst2
         values_dict[prefix + 'cst3'] = cst3
+        values_dict[prefix + 'cst0'] = cst0
         values_dict[prefix + 'eqcst1'] = eqcst1
         values_dict[prefix + 'eqcst2'] = eqcst2
         values_dict[prefix + 'obj1'] = obj1
@@ -331,7 +334,9 @@ class TestFuncManager(unittest.TestCase):
 
         assert disc_techno.check_jacobian(
             input_data=disc_techno.local_data,
-            threshold=1e-5, inputs=['FuncManagerTest.FunctionManager.cst1', 'FuncManagerTest.FunctionManager.cst2',
+            threshold=1e-5, inputs=[
+                'FuncManagerTest.FunctionManager.cst0',
+                'FuncManagerTest.FunctionManager.cst1', 'FuncManagerTest.FunctionManager.cst2',
                                     'FuncManagerTest.FunctionManager.cst3', 'FuncManagerTest.FunctionManager.obj1',
                                     'FuncManagerTest.FunctionManager.obj2'],
             outputs=['FuncManagerTest.FunctionManager.objective_lagrangian'], derr_approx='complex_step')
@@ -609,7 +614,7 @@ class TestFuncManager(unittest.TestCase):
         obj2['obj2_values'] = 1.
         ineq_cst = base_df.copy()
         ineq_cst['ineq_cst_values'] = np.array([10., -2000., -30.])
-        ineq_cst_array = np.array([10., 2000., -30.])
+        ineq_cst0 = np.array([10., 2000., -30.])
         eqcst_delta = base_df.copy()
         eqcst_delta['eqcst_delta_values'] = np.array([400., 1., -10.])
         eqcst_delta2 = base_df.copy()
@@ -622,7 +627,7 @@ class TestFuncManager(unittest.TestCase):
         # -- ~GUI inputs: selection of functions
 
         func_df = pd.DataFrame(columns=['variable', 'ftype', 'weight', 'aggr'])
-        func_df['variable'] = ['ineq_cst', 'ineq_cst_array', 'eqcst_delta', 'eqcst_delta2',
+        func_df['variable'] = ['ineq_cst', 'ineq_cst0', 'eqcst_delta', 'eqcst_delta2',
                                'eqcst_delta_array', 'eqcst_lintoquad', 'eqcst_lintoquad_array',
                                'obj1', 'obj2']
         func_df['ftype'] = [INEQ_CONSTRAINT, INEQ_CONSTRAINT,
@@ -637,7 +642,7 @@ class TestFuncManager(unittest.TestCase):
 
         # -- data to simulate disciplinary chain outputs
         values_dict[prefix + 'ineq_cst'] = ineq_cst
-        values_dict[prefix + 'ineq_cst_array'] = ineq_cst_array
+        values_dict[prefix + 'ineq_cst0'] = ineq_cst0
         values_dict[prefix + 'eqcst_delta'] = eqcst_delta
         values_dict[prefix + 'eqcst_delta2'] = eqcst_delta2
         values_dict[prefix + 'eqcst_delta_array'] = eqcst_delta_array
@@ -650,7 +655,7 @@ class TestFuncManager(unittest.TestCase):
 
         ee.load_study_from_input_dict(values_dict)
 
-        ee.dm.set_data(prefix + 'ineq_cst_array', 'type', 'array')
+        ee.dm.set_data(prefix + 'ineq_cst0', 'type', 'array')
         ee.dm.set_data(prefix + 'eqcst_delta_array', 'type', 'array')
         ee.dm.set_data(prefix + 'eqcst_lintoquad_array', 'type', 'array')
 
@@ -678,7 +683,7 @@ class TestFuncManager(unittest.TestCase):
         assert disc_techno.check_jacobian(
             input_data=disc_techno.local_data,
             threshold=1e-8, inputs=['FuncManagerTest.FunctionManager.ineq_cst',
-                                    'FuncManagerTest.FunctionManager.ineq_cst_array',
+                                    'FuncManagerTest.FunctionManager.ineq_cst0',
                                     'FuncManagerTest.FunctionManager.eqcst_delta',
                                     'FuncManagerTest.FunctionManager.eqcst_delta2',
                                     'FuncManagerTest.FunctionManager.eqcst_delta_array',
@@ -726,3 +731,224 @@ class TestFuncManager(unittest.TestCase):
         func_disc = self.ee.dm.get_disciplines_with_name(f'{self.name}.{optim_name}.SellarCoupling.FunctionManager')[0]
         filter = func_disc.get_chart_filter_list()
         graph_list = func_disc.get_post_processing_list(filter)
+
+    def test_13_jacobian_func_manager_disc_ineq_constraint_negative_when_satisfied(self):
+        INEQ_CONSTRAINT = self.func_manager.INEQ_CONSTRAINT
+
+        # -- init the case
+        func_mng_name = 'FunctionManager'
+        prefix = self.name + '.' + func_mng_name + '.'
+
+        ee = ExecutionEngine(self.name)
+        ns_dict = {'ns_functions': self.name + '.' + func_mng_name,
+                   'ns_optim': self.name + '.' + func_mng_name}
+        ee.ns_manager.add_ns_def(ns_dict)
+
+        mod_list = 'sostrades_optimization_plugins.models.func_manager.func_manager_disc.FunctionManagerDisc'
+        fm_builder = ee.factory.get_builder_from_module(
+            'FunctionManager', mod_list)
+        ee.factory.set_builders_to_coupling_builder(fm_builder)
+        ee.configure()
+
+        # -- i/o setup
+        base_df = pd.DataFrame({'years': arange(10, 13)})
+        cst0 = base_df.copy()
+        cst0['cst0_values'] = np.array([-10., 1, -5.])
+
+        # -- ~GUI inputs: selection of functions
+
+        func_df = pd.DataFrame(columns=['variable', 'ftype', 'weight'])
+        func_df['variable'] = ['cst0']
+        func_df['ftype'] = [INEQ_CONSTRAINT]
+        func_df['weight'] = [2.]
+        func_df['aggr'] = [FunctionManager.INEQ_NEGATIVE_WHEN_SATIFIED]
+        func_df['parent'] = 'obj'
+        func_df['namespace'] = ''
+
+
+        values_dict = {}
+        values_dict[prefix + FunctionManagerDisc.FUNC_DF] = func_df
+
+        # -- data to simulate disciplinary chain outputs
+        values_dict[prefix + 'cst0'] = cst0
+
+        ee.load_study_from_input_dict(values_dict)
+
+        ee.display_treeview_nodes(True)
+
+        # -- execution
+        ee.execute()
+        # -- retrieve outputs
+        disc = ee.dm.get_disciplines_with_name(
+            f'{self.name}.{func_mng_name}')[0]
+        disc_techno = ee.root_process.proxy_disciplines[0].mdo_discipline_wrapp.mdo_discipline
+
+        assert disc_techno.check_jacobian(
+            input_data=disc_techno.local_data,
+            threshold=1e-5, inputs=['FuncManagerTest.FunctionManager.cst0'],
+            outputs=['FuncManagerTest.FunctionManager.objective_lagrangian'], derr_approx='complex_step', step=1e-15)
+
+    def test_14_jacobian_func_manager_disc_ineq_constraint_positive_when_satisfied(self):
+            INEQ_CONSTRAINT = self.func_manager.INEQ_CONSTRAINT
+
+            # -- init the case
+            func_mng_name = 'FunctionManager'
+            prefix = self.name + '.' + func_mng_name + '.'
+
+            ee = ExecutionEngine(self.name)
+            ns_dict = {'ns_functions': self.name + '.' + func_mng_name,
+                       'ns_optim': self.name + '.' + func_mng_name}
+            ee.ns_manager.add_ns_def(ns_dict)
+
+            mod_list = 'sostrades_optimization_plugins.models.func_manager.func_manager_disc.FunctionManagerDisc'
+            fm_builder = ee.factory.get_builder_from_module(
+                'FunctionManager', mod_list)
+            ee.factory.set_builders_to_coupling_builder(fm_builder)
+            ee.configure()
+
+            # -- i/o setup
+            base_df = pd.DataFrame({'years': arange(10, 13)})
+            cst0 = base_df.copy()
+            cst0['cst0_values'] = np.array([-10., 0.2, -5.])
+
+            # -- ~GUI inputs: selection of functions
+
+            func_df = pd.DataFrame(columns=['variable', 'ftype', 'weight'])
+            func_df['variable'] = ['cst0']
+            func_df['ftype'] = [INEQ_CONSTRAINT]
+            func_df['weight'] = [3.]
+            func_df['aggr'] = [FunctionManager.INEQ_POSITIVE_WHEN_SATIFIED]
+            func_df['parent'] = 'obj'
+            func_df['namespace'] = ''
+
+            values_dict = {}
+            values_dict[prefix + FunctionManagerDisc.FUNC_DF] = func_df
+
+            # -- data to simulate disciplinary chain outputs
+            values_dict[prefix + 'cst0'] = cst0
+
+            ee.load_study_from_input_dict(values_dict)
+
+            ee.display_treeview_nodes(True)
+
+            # -- execution
+            ee.execute()
+            # -- retrieve outputs
+            disc = ee.dm.get_disciplines_with_name(
+                f'{self.name}.{func_mng_name}')[0]
+            disc_techno = ee.root_process.proxy_disciplines[0].mdo_discipline_wrapp.mdo_discipline
+
+            assert disc_techno.check_jacobian(
+                input_data=disc_techno.local_data,
+                threshold=1e-5, inputs=['FuncManagerTest.FunctionManager.cst0'],
+                outputs=['FuncManagerTest.FunctionManager.objective_lagrangian'], derr_approx='complex_step')
+
+    def test_16_jacobian_func_manager_disc_ineq_constraint_negative_when_satisfied_square(self):
+            INEQ_CONSTRAINT = self.func_manager.INEQ_CONSTRAINT
+
+            # -- init the case
+            func_mng_name = 'FunctionManager'
+            prefix = self.name + '.' + func_mng_name + '.'
+
+            ee = ExecutionEngine(self.name)
+            ns_dict = {'ns_functions': self.name + '.' + func_mng_name,
+                       'ns_optim': self.name + '.' + func_mng_name}
+            ee.ns_manager.add_ns_def(ns_dict)
+
+            mod_list = 'sostrades_optimization_plugins.models.func_manager.func_manager_disc.FunctionManagerDisc'
+            fm_builder = ee.factory.get_builder_from_module(
+                'FunctionManager', mod_list)
+            ee.factory.set_builders_to_coupling_builder(fm_builder)
+            ee.configure()
+
+            # -- i/o setup
+            base_df = pd.DataFrame({'years': arange(10, 13)})
+            cst0 = base_df.copy()
+            cst0['cst0_values'] = np.array([-10., 0.2, -5.])
+
+            # -- ~GUI inputs: selection of functions
+
+            func_df = pd.DataFrame(columns=['variable', 'ftype', 'weight'])
+            func_df['variable'] = ['cst0']
+            func_df['ftype'] = [INEQ_CONSTRAINT]
+            func_df['weight'] = [2.5]
+            func_df['aggr'] = [FunctionManager.INEQ_NEGATIVE_WHEN_SATIFIED_AND_SQUARE_IT]
+            func_df['parent'] = 'obj'
+            func_df['namespace'] = ''
+
+            values_dict = {}
+            values_dict[prefix + FunctionManagerDisc.FUNC_DF] = func_df
+
+            # -- data to simulate disciplinary chain outputs
+            values_dict[prefix + 'cst0'] = cst0
+
+            ee.load_study_from_input_dict(values_dict)
+
+            ee.display_treeview_nodes(True)
+
+            # -- execution
+            ee.execute()
+            # -- retrieve outputs
+            disc = ee.dm.get_disciplines_with_name(
+                f'{self.name}.{func_mng_name}')[0]
+            disc_techno = ee.root_process.proxy_disciplines[0].mdo_discipline_wrapp.mdo_discipline
+
+            assert disc_techno.check_jacobian(
+                input_data=disc_techno.local_data,
+                threshold=1e-5, inputs=['FuncManagerTest.FunctionManager.cst0'],
+                outputs=['FuncManagerTest.FunctionManager.objective_lagrangian'], derr_approx='complex_step')
+
+    def test_17_jacobian_func_manager_disc_ineq_constraint_positive_when_satisfied_square(self):
+            INEQ_CONSTRAINT = self.func_manager.INEQ_CONSTRAINT
+
+            # -- init the case
+            func_mng_name = 'FunctionManager'
+            prefix = self.name + '.' + func_mng_name + '.'
+
+            ee = ExecutionEngine(self.name)
+            ns_dict = {'ns_functions': self.name + '.' + func_mng_name,
+                       'ns_optim': self.name + '.' + func_mng_name}
+            ee.ns_manager.add_ns_def(ns_dict)
+
+            mod_list = 'sostrades_optimization_plugins.models.func_manager.func_manager_disc.FunctionManagerDisc'
+            fm_builder = ee.factory.get_builder_from_module(
+                'FunctionManager', mod_list)
+            ee.factory.set_builders_to_coupling_builder(fm_builder)
+            ee.configure()
+
+            # -- i/o setup
+            base_df = pd.DataFrame({'years': arange(10, 13)})
+            cst0 = base_df.copy()
+            cst0['cst0_values'] = np.array([-10., 0.2, -5.])
+
+            # -- ~GUI inputs: selection of functions
+
+            func_df = pd.DataFrame(columns=['variable', 'ftype', 'weight'])
+            func_df['variable'] = ['cst0']
+            func_df['ftype'] = [INEQ_CONSTRAINT]
+            func_df['weight'] = [2.]
+            func_df['aggr'] = [FunctionManager.INEQ_POSITIVE_WHEN_SATIFIED_AND_SQUARE_IT]
+            func_df['parent'] = 'obj'
+            func_df['namespace'] = ''
+
+            values_dict = {}
+            values_dict[prefix + FunctionManagerDisc.FUNC_DF] = func_df
+
+            # -- data to simulate disciplinary chain outputs
+            values_dict[prefix + 'cst0'] = cst0
+
+            ee.load_study_from_input_dict(values_dict)
+
+            ee.display_treeview_nodes(True)
+
+            # -- execution
+            ee.execute()
+            # -- retrieve outputs
+            disc = ee.dm.get_disciplines_with_name(
+                f'{self.name}.{func_mng_name}')[0]
+            disc_techno = ee.root_process.proxy_disciplines[0].mdo_discipline_wrapp.mdo_discipline
+
+            assert disc_techno.check_jacobian(
+                input_data=disc_techno.local_data,
+                threshold=1e-5, inputs=['FuncManagerTest.FunctionManager.cst0'],
+                outputs=['FuncManagerTest.FunctionManager.objective_lagrangian'], derr_approx='complex_step')

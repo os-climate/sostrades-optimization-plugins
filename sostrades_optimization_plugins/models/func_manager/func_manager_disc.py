@@ -39,7 +39,13 @@ from sostrades_optimization_plugins.models.func_manager.func_manager import (
     FunctionManager,
 )
 from sostrades_optimization_plugins.tools.cst_manager.func_manager_common import (
+    derivative_d_keep_negative_only,
+    derivative_d_keep_positive_only,
+    derivative_d_keep_positive_only_square,
     get_dsmooth_dvariable,
+    keep_negative_only,
+    keep_positive_only,
+    keep_positive_only_square,
     smooth_maximum,
 )
 
@@ -85,6 +91,9 @@ class FunctionManagerDisc(OptimManagerDisc):
     OPTIM_OUTPUT_DF = 'optim_output_df'
     EXPORT_CSV = 'export_csv'
 
+    AGGR_TYPE_SUM = FunctionManager.AGGR_TYPE_SUM
+    AGGR_TYPE_SMAX = FunctionManager.AGGR_TYPE_SMAX
+
     NS_OPTIM = 'ns_optim'
     DESC_IN = {FUNC_DF: {'type': 'dataframe',
                          'dataframe_descriptor': {VARIABLE: ('string', None, True),  # input function
@@ -102,8 +111,8 @@ class FunctionManagerDisc(OptimManagerDisc):
                EXPORT_CSV: {'type': 'bool', 'default': False},
                'smooth_log': {'type': 'bool', 'default': False, 'user_level': 3},
                'eps2': {'type': 'float', 'default': 1e10, 'user_level': 3},
-               'aggr_mod_ineq': {'type': 'string', 'default': 'sum', 'user_level': 3},
-               'aggr_mod_eq': {'type': 'string', 'default': 'sum', 'user_level': 3},
+               'aggr_mod_ineq': {'type': 'string', 'default': AGGR_TYPE_SUM, 'user_level': 3},
+               'aggr_mod_eq': {'type': 'string', 'default': AGGR_TYPE_SUM, 'user_level': 3},
                }
     DESC_OUT = {OPTIM_OUTPUT_DF: {'type': 'dataframe'}}
 
@@ -223,12 +232,12 @@ class FunctionManagerDisc(OptimManagerDisc):
                     ftype = metadata[FunctionManager.FTYPE]
                     w = metadata.get(FunctionManager.WEIGHT, None)
 
-                    aggr_type = 'sum'
+                    aggr_type = self.AGGR_TYPE_SUM
                     if self.AGGR_TYPE in func_df.columns:
                         aggr_type = func_df.loc[func_df[self.VARIABLE]
                                                 == f, self.AGGR_TYPE].values[0]
                         if pd.isnull(aggr_type):
-                            aggr_type = 'sum'
+                            aggr_type = self.AGGR_TYPE_SUM
                     if w is None:
                         w = 1.
                     self.func_manager.add_function(
@@ -409,20 +418,22 @@ class FunctionManagerDisc(OptimManagerDisc):
         value_gh_l = []
         value_ghk_l = []
         for variable_name in self.func_manager.functions.keys():
-            value_df = inputs_dict[variable_name]
-            weight = self.func_manager.functions[variable_name][self.WEIGHT]
+            input_var_value = inputs_dict[variable_name]
             grad_value_l[variable_name] = {}
             grad_val_compos[variable_name] = {}
-            if self.func_manager.functions[variable_name][self.FTYPE] == self.OBJECTIVE:
+            var_f_type = self.func_manager.functions[variable_name][self.FTYPE]
+            var_aggr_type = self.func_manager.functions[variable_name][self.AGGR_TYPE]
+            weight = self.func_manager.functions[variable_name][self.WEIGHT]
+            if var_f_type == self.OBJECTIVE:
 
-                if isinstance(value_df, np.ndarray):
+                if isinstance(input_var_value, np.ndarray):
                     n = len(
                         self.func_manager.functions[variable_name][self.VALUE])
 
-                    if self.func_manager.functions[variable_name][self.AGGR_TYPE] == 'sum':
+                    if self.func_manager.functions[variable_name][self.AGGR_TYPE] == self.AGGR_TYPE_SUM:
 
                         grad_value = weight * np.ones(n)
-                    elif self.func_manager.functions[variable_name][self.AGGR_TYPE] == 'smax':
+                    elif self.func_manager.functions[variable_name][self.AGGR_TYPE] == self.AGGR_TYPE_SMAX:
                         grad_value = float(weight) * \
                                      np.array(get_dsmooth_dvariable(
                                          self.func_manager.functions[variable_name][self.VALUE]))
@@ -434,15 +445,15 @@ class FunctionManagerDisc(OptimManagerDisc):
                     self.set_partial_derivative(
                         'objective', variable_name, np.atleast_2d(grad_value))
                 else:
-                    for col_name in value_df.columns:
+                    for col_name in input_var_value.columns:
                         if col_name != 'years':
                             n = len(
                                 self.func_manager.functions[variable_name][self.VALUE])
 
-                            if self.func_manager.functions[variable_name][self.AGGR_TYPE] == 'sum':
+                            if self.func_manager.functions[variable_name][self.AGGR_TYPE] == self.AGGR_TYPE_SUM:
 
                                 grad_value = weight * np.ones(n)
-                            elif self.func_manager.functions[variable_name][self.AGGR_TYPE] == 'smax':
+                            elif self.func_manager.functions[variable_name][self.AGGR_TYPE] == self.AGGR_TYPE_SMAX:
 
                                 grad_value = float(weight) * \
                                              np.array(get_dsmooth_dvariable(
@@ -454,36 +465,65 @@ class FunctionManagerDisc(OptimManagerDisc):
                             self.set_partial_derivative_for_other_types(
                                 ('objective_lagrangian',), (variable_name, col_name), 100.0 * grad_value)
 
-            elif self.func_manager.functions[variable_name][self.FTYPE] == self.INEQ_CONSTRAINT:
-                if isinstance(value_df, pd.DataFrame):
-                    for col_name in value_df.columns:
-                        if col_name != 'years':
-                            # h: cst_func_ineq, g: smooth_max, f: smooth_max
-                            # g(h(x)) for each variable , f([g(h(x1), g(h(x2))])
-                            # weight
-                            weight = self.func_manager.functions[variable_name][self.WEIGHT]
-                            value = value_df[col_name] * weight
-                            # h'(x)
-                            grad_value = self.get_dfunc_ineq_dvariable(
-                                value)
-                            # h(x)
-                            func_ineq = f_manager.cst_func_ineq(
-                                value)
-                            # g(h(x))
-                            value_gh_l.append(
-                                smooth_maximum(func_ineq))
-                            # g'(h(x))
-                            grad_val_compos[variable_name][col_name] = get_dsmooth_dvariable(
-                                func_ineq)
-                            # g'(h(x)) * h'(x)
-                            grad_val_compos_l = np.array(
-                                grad_value) * np.array(grad_val_compos[variable_name][col_name])
+            elif var_f_type == self.INEQ_CONSTRAINT:
+                if isinstance(input_var_value, pd.DataFrame):
+                    if var_aggr_type == FunctionManager.INEQ_NEGATIVE_WHEN_SATIFIED:
+                        for col_name in input_var_value.columns:
+                            if col_name != 'years':
+                                value = input_var_value[col_name].values * weight
+                                func_value = keep_positive_only(value)
+                                grad_value = derivative_d_keep_positive_only(value)
+                                value_gh_l.append(func_value)
+                                grad_value_l[variable_name][col_name] = grad_value
+                    elif var_aggr_type == FunctionManager.INEQ_POSITIVE_WHEN_SATIFIED:
+                        for col_name in input_var_value.columns:
+                            if col_name != 'years':
+                                value = input_var_value[col_name] * weight
+                                func_value = keep_negative_only(value)
+                                grad_value = derivative_d_keep_negative_only(value)
+                                value_gh_l.append(func_value)
+                                grad_value_l[variable_name][col_name] = grad_value
+                    elif var_aggr_type == FunctionManager.INEQ_NEGATIVE_WHEN_SATIFIED_AND_SQUARE_IT:
+                        for col_name in input_var_value.columns:
+                            if col_name != 'years':
+                                value = input_var_value[col_name] * weight
+                                func_value = keep_positive_only_square(value)
+                                grad_value = derivative_d_keep_positive_only_square(value)
+                                value_gh_l.append(func_value)
+                                grad_value_l[variable_name][col_name] = grad_value
+                    elif var_aggr_type == FunctionManager.INEQ_POSITIVE_WHEN_SATIFIED_AND_SQUARE_IT:
+                        for col_name in input_var_value.columns:
+                            if col_name != 'years':
+                                value = input_var_value[col_name] * weight
+                                func_value = keep_negative_only(value) ** 2
+                                grad_value = derivative_d_keep_negative_only(value) * 2 * value
+                                value_gh_l.append(func_value)
+                                grad_value_l[variable_name][col_name] = grad_value
+                    else:
+                        for col_name in input_var_value.columns:
+                            if col_name != 'years':
+                                # h: cst_func_ineq, g: smooth_max, f: smooth_max
+                                # g(h(x)) for each variable , f([g(h(x1), g(h(x2))])
+                                # weight
+                                value = input_var_value[col_name] * weight
+                                # h'(x)
+                                grad_value = self.get_dfunc_ineq_dvariable(value)
+                                # h(x)
+                                func_ineq = f_manager.cst_func_ineq(value)
+                                # g(h(x))
+                                value_gh_l.append(
+                                    smooth_maximum(func_ineq))
+                                # g'(h(x))
+                                grad_val_compos[variable_name][col_name] = get_dsmooth_dvariable(
+                                    func_ineq)
+                                # g'(h(x)) * h'(x)
+                                grad_val_compos_l = np.array(
+                                    grad_value) * np.array(grad_val_compos[variable_name][col_name])
 
-                            grad_value_l[variable_name][col_name] = grad_val_compos_l
+                                grad_value_l[variable_name][col_name] = grad_val_compos_l
 
-                elif isinstance(value_df, np.ndarray):
-                    weight = self.func_manager.functions[variable_name][self.WEIGHT]
-                    value = value_df * weight
+                elif isinstance(input_var_value, np.ndarray):
+                    value = input_var_value * weight
                     # h'(x)
                     grad_value = self.get_dfunc_ineq_dvariable(
                         value)
@@ -504,15 +544,14 @@ class FunctionManagerDisc(OptimManagerDisc):
                 else:
                     raise Exception(
                         'Gradients for constraints which are not dataframes or arrays are not yet implemented')
-            elif self.func_manager.functions[variable_name][self.FTYPE] == self.EQ_CONSTRAINT:
-                if isinstance(value_df, pd.DataFrame):
-                    for col_name in value_df.columns:
+            elif var_f_type == self.EQ_CONSTRAINT:
+                if isinstance(input_var_value, pd.DataFrame):
+                    for col_name in input_var_value.columns:
                         if col_name != 'years':
                             # k: sqrt(x**2) h: cst_func_eq, g : smooth_max, f: smooth_max
                             # g(h(k(x))) for each variable , f([g(h(k(x1)), g(h(k(x2)))])
                             # weight
-                            weight = self.func_manager.functions[variable_name][self.WEIGHT]
-                            value = np.array(value_df[col_name].values * weight)
+                            value = np.array(input_var_value[col_name].values * weight)
                             if self.func_manager.functions[variable_name][
                                 self.AGGR_TYPE] == self.func_manager.AGGR_TYPE_DELTA:
                                 # k(x)
@@ -561,12 +600,11 @@ class FunctionManagerDisc(OptimManagerDisc):
 
                             grad_value_l[variable_name][col_name] = grad_val_compos_l
 
-                elif isinstance(value_df, np.ndarray):
+                elif isinstance(input_var_value, np.ndarray):
                     # k: sqrt(x**2) h: cst_func_eq, g : smooth_max, f: smooth_max
                     # g(h(k(x))) for each variable , f([g(h(k(x1)), g(h(k(x2)))])
                     # weight
-                    weight = self.func_manager.functions[variable_name][self.WEIGHT]
-                    value = value_df * weight
+                    value = input_var_value * weight
 
                     if self.func_manager.functions[variable_name][
                         self.AGGR_TYPE] == self.func_manager.AGGR_TYPE_DELTA:
@@ -631,12 +669,13 @@ class FunctionManagerDisc(OptimManagerDisc):
         i = 0
         j = 0
         for variable_name in self.func_manager.functions.keys():
-            if self.func_manager.functions[variable_name][self.FTYPE] == self.INEQ_CONSTRAINT:
+            weight = self.func_manager.functions[variable_name][self.WEIGHT]
+            var_f_type = self.func_manager.functions[variable_name][self.FTYPE]
+            if var_f_type == self.INEQ_CONSTRAINT:
 
-                value_df = inputs_dict[variable_name]
+                input_var_value = inputs_dict[variable_name]
                 dict_grad_ineq[variable_name] = grad_val_ineq[i]
-                weight = self.func_manager.functions[variable_name][self.WEIGHT]
-                if isinstance(value_df, np.ndarray):
+                if isinstance(input_var_value, np.ndarray):
 
                     if self.func_manager.aggr_mod_ineq == 'smooth_max':
                         grad_lagr_val = np.array(grad_value_l[variable_name]) * grad_val_ineq[i]
@@ -654,9 +693,8 @@ class FunctionManagerDisc(OptimManagerDisc):
 
                     i = i + 1
 
-                elif isinstance(value_df, pd.DataFrame):
-
-                    for col_name in value_df.columns:
+                elif isinstance(input_var_value, pd.DataFrame):
+                    for col_name in input_var_value.columns:
                         if col_name != 'years':
                             if self.func_manager.aggr_mod_ineq == 'smooth_max':
                                 grad_lagr_val = np.array(grad_value_l[variable_name][col_name]) * grad_val_ineq[i]
@@ -666,18 +704,18 @@ class FunctionManagerDisc(OptimManagerDisc):
                                 grad_ineq_val = np.array(grad_value_l[variable_name][col_name])
 
                             self.set_partial_derivative_for_other_types(
-                                ('objective_lagrangian',), (variable_name, col_name),
+                                ('objective_lagrangian',),
+                                (variable_name, col_name),
                                 weight * 100.0 * grad_lagr_val)
                             self.set_partial_derivative_for_other_types(
                                 ('ineq_constraint',), (variable_name, col_name),
                                 weight * grad_ineq_val)
                             i = i + 1
 
-            elif self.func_manager.functions[variable_name][self.FTYPE] == self.EQ_CONSTRAINT:
-                value_df = inputs_dict[variable_name]
+            elif var_f_type == self.EQ_CONSTRAINT:
+                input_var_value = inputs_dict[variable_name]
                 dict_grad_eq[variable_name] = grad_val_eq[j]
-                weight = self.func_manager.functions[variable_name][self.WEIGHT]
-                if isinstance(value_df, np.ndarray):
+                if isinstance(input_var_value, np.ndarray):
                     if self.func_manager.aggr_mod_eq == 'smooth_max':
                         grad_lagr_val = np.array(grad_value_l[variable_name]) * grad_val_eq[j]
                         grad_eq_val = np.array(grad_value_l[variable_name]) * grad_val_eq[j]
@@ -694,9 +732,9 @@ class FunctionManagerDisc(OptimManagerDisc):
                         np.atleast_2d(weight * grad_eq_val))
                     j = j + 1
 
-                elif isinstance(value_df, pd.DataFrame):
+                elif isinstance(input_var_value, pd.DataFrame):
 
-                    for col_name in value_df.columns:
+                    for col_name in input_var_value.columns:
                         if col_name != 'years':
                             if self.func_manager.aggr_mod_eq == 'smooth_max':
                                 grad_lagr_val = np.array(grad_value_l[variable_name][col_name]) * grad_val_eq[j]
@@ -911,7 +949,7 @@ class FunctionManagerDisc(OptimManagerDisc):
         ineq_list = []
         eq_list = []
         mod_columns_dict = {self.PARENT: None,
-                            self.WEIGHT: 1.0, self.AGGR_TYPE: 'sum'}
+                            self.WEIGHT: 1.0, self.AGGR_TYPE: self.AGGR_TYPE_SUM}
         for i, row in func_df.iterrows():
             mod_parameter_dict = {}
             mod_parameter_dict[self.VARIABLE] = row[self.VARIABLE] + '_mod'
@@ -939,20 +977,20 @@ class FunctionManagerDisc(OptimManagerDisc):
         # Aggregated objectives and constraints
         dict_aggr_obj = {self.VARIABLE: self.OBJECTIVE,
                          self.PARENT: self.OBJECTIVE_LAGR,
-                         self.WEIGHT: 1.0, self.AGGR_TYPE: 'sum'}
+                         self.WEIGHT: 1.0, self.AGGR_TYPE: self.AGGR_TYPE_SUM}
         parameters_dict[dict_aggr_obj[self.VARIABLE]] = dict_aggr_obj
         dict_aggr_ineq = {self.VARIABLE: self.INEQ_CONSTRAINT,
                           self.PARENT: self.OBJECTIVE_LAGR,
-                          self.WEIGHT: 1.0, self.AGGR_TYPE: 'smax'}
+                          self.WEIGHT: 1.0, self.AGGR_TYPE: self.AGGR_TYPE_SMAX}
         parameters_dict[dict_aggr_ineq[self.VARIABLE]] = dict_aggr_ineq
         dict_aggr_eq = {self.VARIABLE: self.EQ_CONSTRAINT,
                         self.PARENT: self.OBJECTIVE_LAGR,
-                        self.WEIGHT: 1.0, self.AGGR_TYPE: 'smax'}
+                        self.WEIGHT: 1.0, self.AGGR_TYPE: self.AGGR_TYPE_SMAX}
         parameters_dict[dict_aggr_eq[self.VARIABLE]] = dict_aggr_eq
 
         # Lagrangian objective
         dict_lagrangian = {self.VARIABLE: self.OBJECTIVE_LAGR, self.PARENT: None,
-                           self.WEIGHT: 1.0, self.AGGR_TYPE: 'sum'}
+                           self.WEIGHT: 1.0, self.AGGR_TYPE: self.AGGR_TYPE_SUM}
         parameters_dict[dict_lagrangian[self.VARIABLE]] = dict_lagrangian
         parameters_df = pd.DataFrame(parameters_dict).transpose()
 
@@ -1259,7 +1297,7 @@ class FunctionManagerDisc(OptimManagerDisc):
                         *parameters_df.loc[children_list, 'value'])]
                     dict_parent = {self.VARIABLE: parent,
                                    self.PARENT: parent_parent,
-                                   self.WEIGHT: 1.0, self.AGGR_TYPE: 'sum',
+                                   self.WEIGHT: 1.0, self.AGGR_TYPE: self.AGGR_TYPE_SUM,
                                    'value': [value]}
                     parameters_df = pd.concat([parameters_df,
                         pd.DataFrame(dict_parent, index=[parent])], axis=0)
