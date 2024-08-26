@@ -29,9 +29,9 @@ class TestDesignVar(AbstractJacobianUnittest):
     """
     DesignVar unitary test class
     """
+
     def analytic_grad_entry(self):
-        return [self.test_derivative
-                ]
+        return []
 
     def setUp(self):
         self.study_name = 'Test'
@@ -206,9 +206,3 @@ class TestDesignVar(AbstractJacobianUnittest):
         z_in_value = list(self.values_dict[f'{self.ns}.z_in'])
         z_value_th = z_in_value + [z_in_value[-1]] * (len(dspace_z_value) - len(z_in_value))
         assert (list(z) == z_value_th)
-
-
-if '__main__' == __name__:
-    cls = TestDesignVar()
-    cls.setUp()
-    cls.test_01_check_execute()
