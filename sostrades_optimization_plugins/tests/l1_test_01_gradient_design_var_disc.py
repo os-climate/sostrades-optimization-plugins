@@ -33,11 +33,9 @@ class GradiantAssetDiscTestCase(AbstractJacobianUnittest):
     """
     np.random.seed(42)
 
+
     def analytic_grad_entry(self):
-        return [
-            self.test_01_analytic_gradient_default_dataframe_fill(),
-            self.test_02_analytic_gradient_dataframe_fill_one_column_for_key(),
-        ]
+        return []
 
     def setUp(self):
         """Initialize"""

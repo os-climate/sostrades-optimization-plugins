@@ -18,6 +18,10 @@ import numpy as np
 from sostrades_core.tools.base_functions.exp_min import compute_func_with_exp_min
 
 from sostrades_optimization_plugins.tools.cst_manager.func_manager_common import (
+    keep_negative_only,
+    keep_negative_only_square,
+    keep_positive_only,
+    keep_positive_only_square,
     smooth_maximum,
 )
 
@@ -35,10 +39,17 @@ class FunctionManager:
     WEIGHT = 'weight'  # Can be used for normalisation
     AGGR = 'aggr'
     AGGR_TYPE_SMAX = 'smax'
+    INEQ_NEGATIVE_WHEN_SATIFIED = 'negative_when_satisfied'
+    INEQ_POSITIVE_WHEN_SATIFIED = 'positive_when_satisfied'
+    INEQ_NEGATIVE_WHEN_SATIFIED_AND_SQUARE_IT = 'negative_when_satisfied_square_it'
+    INEQ_POSITIVE_WHEN_SATIFIED_AND_SQUARE_IT = 'positive_when_satisfied_square_it'
     AGGR_TYPE_SUM = 'sum'
+    AGGR_TYPE_MEAN = 'mean'
     AGGR_TYPE_DELTA = 'delta'
     AGGR_TYPE_LIN_TO_QUAD = 'lin_to_quad'
-    POS_AGGR_TYPE = [AGGR_TYPE_SMAX, AGGR_TYPE_SUM, AGGR_TYPE_DELTA, AGGR_TYPE_LIN_TO_QUAD]
+    POS_AGGR_TYPE = [AGGR_TYPE_SMAX, AGGR_TYPE_SUM, AGGR_TYPE_DELTA, AGGR_TYPE_LIN_TO_QUAD,
+                     AGGR_TYPE_MEAN, INEQ_NEGATIVE_WHEN_SATIFIED, INEQ_POSITIVE_WHEN_SATIFIED,
+                     INEQ_NEGATIVE_WHEN_SATIFIED_AND_SQUARE_IT, INEQ_POSITIVE_WHEN_SATIFIED_AND_SQUARE_IT]
 
     def __init__(self):
         """
@@ -125,20 +136,31 @@ class FunctionManager:
             if self.functions[tag][self.FTYPE] == self.OBJECTIVE:
                 #-- smooth maximum of values return the value if it was a float
                 #-- return smooth maximum if objective was an array
-                if aggr_type == 'smax':
+                if aggr_type == self.AGGR_TYPE_SMAX:
                     res = smooth_maximum(values, alpha)
-                elif aggr_type == 'sum':
+                elif aggr_type == self.AGGR_TYPE_SUM:
                     res = values.sum()
+                elif aggr_type == self.AGGR_TYPE_MEAN:
+                    res = values.mean()
                 else:
                     raise Exception(f"Unhandled aggr_type {aggr_type}")
             elif self.functions[tag][self.FTYPE] == self.INEQ_CONSTRAINT:
                 #-- scale between (0., +inf) and take smooth maximum
-                cst = self.cst_func_ineq(values, eps, tag)
-                res = smooth_maximum(cst, alpha)
+                if aggr_type == self.INEQ_NEGATIVE_WHEN_SATIFIED:
+                    res = keep_positive_only(values)
+                elif aggr_type == self.INEQ_POSITIVE_WHEN_SATIFIED:
+                    res = keep_negative_only(values)
+                elif aggr_type == self.INEQ_NEGATIVE_WHEN_SATIFIED_AND_SQUARE_IT:
+                    res = keep_positive_only_square(values)
+                elif aggr_type == self.INEQ_POSITIVE_WHEN_SATIFIED_AND_SQUARE_IT:
+                    res = keep_negative_only_square(values)
+                else:
+                    cst = self.cst_func_ineq(values, eps, tag)
+                    res = smooth_maximum(cst, alpha)
             elif self.functions[tag][self.FTYPE] == self.EQ_CONSTRAINT:
-                if aggr_type == 'delta':
+                if aggr_type == self.AGGR_TYPE_DELTA:
                     cst = self.cst_func_eq_delta(values, eps, tag)
-                elif aggr_type == 'lin_to_quad':
+                elif aggr_type == self.AGGR_TYPE_LIN_TO_QUAD:
                     cst = self.cst_func_eq_lintoquad(values, eps, tag)
                 else:
                     cst = self.cst_func_eq(values)
