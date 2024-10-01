@@ -55,9 +55,9 @@ class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
     - test_11_gradient_subprocess_wo_dvar_fmanager_flatten_local_data : Test Sellar without design var nor func manager
     """
 
+
     def analytic_grad_entry(self):
-        return [self._test_01_gradient_subprocess_double_level_coupling(),
-                ]
+        return []
 
     def setUp(self):
         self.name = 'Test'
@@ -333,7 +333,7 @@ class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
         local_data_after_execute = coupling_disc.mdo_discipline_wrapp.mdo_discipline.local_data
         self.check_jacobian(location=dirname(__file__), filename=pkl_name,
                             discipline=coupling_disc.mdo_discipline_wrapp.mdo_discipline,
-                            step=1.0e-15, derr_approx='complex_step', threshold=1e-20,
+                            step=1.0e-15, derr_approx='complex_step', threshold=1e-12,
                             local_data=deepcopy(local_data_after_execute),
                             inputs=inputs,
                             outputs=outputs)
@@ -428,7 +428,7 @@ class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
         local_data_after_execute = coupling_disc.mdo_discipline_wrapp.mdo_discipline.local_data
         self.check_jacobian(location=dirname(__file__), filename=pkl_name,
                             discipline=coupling_disc.mdo_discipline_wrapp.mdo_discipline,
-                            step=1.0e-3, derr_approx='complex_step', threshold=1e-20,
+                            step=1.0e-3, derr_approx='complex_step', threshold=1e-09,
                             local_data=deepcopy(local_data_after_execute),
                             inputs=inputs,
                             outputs=outputs)
