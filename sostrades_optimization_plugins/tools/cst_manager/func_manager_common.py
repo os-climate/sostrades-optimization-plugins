@@ -16,6 +16,8 @@ limitations under the License.
 '''
 
 # pylint: disable=unsubscriptable-object
+import warnings
+
 import numpy as np
 from sostrades_core.tools.base_functions.exp_min import (
     compute_dfunc_with_exp_min,
@@ -112,43 +114,46 @@ def get_dsmooth_dvariable(cst, alpha=3):
 
 
 def get_dsmooth_dvariable_vect(cst, alpha=3):
-    cst_array = np.array(cst)
-    max_exp = 650.0  # max value for exponent input, higher value gives infinity
-    min_exp = -300
-    alphaxcst = alpha * cst_array
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
 
-    max_alphax = np.amax(alphaxcst, axis=1)
+        cst_array = np.array(cst)
+        max_exp = 650.0  # max value for exponent input, higher value gives infinity
+        min_exp = -300
+        alphaxcst = alpha * cst_array
 
-    k = max_alphax - max_exp
-    exp_func = np.maximum(min_exp, alpha * cst_array -
-                          np.repeat(k, cst_array.shape[1]).reshape(cst_array.shape))
-    den = np.sum(np.exp(exp_func), axis=1)
-    num = np.sum(cst_array * np.exp(exp_func), axis=1)
+        max_alphax = np.amax(alphaxcst, axis=1)
 
-    # Vectorized calculation
-    exp_func = np.maximum(min_exp, alpha * cst_array -
-                          np.repeat(k, cst_array.shape[1]).reshape(cst_array.shape))
-    dden = alpha * np.exp(exp_func)
-    dnum = cst_array * (alpha * np.exp(exp_func)
-                        ) + np.exp(exp_func)
-    grad_value = dnum / np.repeat(den, cst_array.shape[1]).reshape(cst_array.shape) - (np.repeat(num, cst_array.shape[1]).reshape(
-        cst_array.shape) / np.repeat(den, cst_array.shape[1]).reshape(cst_array.shape)) * (dden / np.repeat(den, cst_array.shape[1]).reshape(cst_array.shape))
+        k = max_alphax - max_exp
+        exp_func = np.maximum(min_exp, alpha * cst_array -
+                              np.repeat(k, cst_array.shape[1]).reshape(cst_array.shape))
+        den = np.sum(np.exp(exp_func), axis=1)
+        num = np.sum(cst_array * np.exp(exp_func), axis=1)
 
-    # Special case for max element
-    max_elem = np.amax(cst_array * np.sign(alpha), axis=1) * np.sign(alpha)
-    non_max_idx = np.array([cst_array[i] != max_elem[i]
-                            for i in np.arange(cst_array.shape[0])]).reshape(cst_array.shape[0], cst_array.shape[1])
-    dden_max = np.sum(-alpha * non_max_idx *
-                      np.exp(np.maximum(min_exp, alpha * cst_array - np.repeat(k, cst_array.shape[1]).reshape(cst_array.shape))), axis=1)
-    dnum_max = np.sum(-alpha * cst_array * non_max_idx *
-                      np.exp(np.maximum(min_exp, alpha * cst_array - np.repeat(k, cst_array.shape[1]).reshape(cst_array.shape))), axis=1)
-    # derivative of den wto cstmax is 0
-    dden_max = dden_max + 0.0
-    dnum_max = dnum_max + 1.0 * np.exp(alpha * max_elem - k)
-    grad_val_max = dnum_max / den - (num / den) * (dden_max / den)
+        # Vectorized calculation
+        exp_func = np.maximum(min_exp, alpha * cst_array -
+                              np.repeat(k, cst_array.shape[1]).reshape(cst_array.shape))
+        dden = alpha * np.exp(exp_func)
+        dnum = cst_array * (alpha * np.exp(exp_func)
+                            ) + np.exp(exp_func)
+        grad_value = dnum / np.repeat(den, cst_array.shape[1]).reshape(cst_array.shape) - (np.repeat(num, cst_array.shape[1]).reshape(
+            cst_array.shape) / np.repeat(den, cst_array.shape[1]).reshape(cst_array.shape)) * (dden / np.repeat(den, cst_array.shape[1]).reshape(cst_array.shape))
 
-    for i in np.arange(cst_array.shape[0]):
-        grad_value[i][np.logical_not(non_max_idx)[i]] = grad_val_max[i]
+        # Special case for max element
+        max_elem = np.amax(cst_array * np.sign(alpha), axis=1) * np.sign(alpha)
+        non_max_idx = np.array([cst_array[i] != max_elem[i]
+                                for i in np.arange(cst_array.shape[0])]).reshape(cst_array.shape[0], cst_array.shape[1])
+        dden_max = np.sum(-alpha * non_max_idx *
+                          np.exp(np.maximum(min_exp, alpha * cst_array - np.repeat(k, cst_array.shape[1]).reshape(cst_array.shape))), axis=1)
+        dnum_max = np.sum(-alpha * cst_array * non_max_idx *
+                          np.exp(np.maximum(min_exp, alpha * cst_array - np.repeat(k, cst_array.shape[1]).reshape(cst_array.shape))), axis=1)
+        # derivative of den wto cstmax is 0
+        dden_max = dden_max + 0.0
+        dnum_max = dnum_max + 1.0 * np.exp(alpha * max_elem - k)
+        grad_val_max = dnum_max / den - (num / den) * (dden_max / den)
+
+        for i in np.arange(cst_array.shape[0]):
+            grad_value[i][np.logical_not(non_max_idx)[i]] = grad_val_max[i]
 
     return grad_value
 
@@ -218,7 +223,7 @@ def get_dcons_smooth_dvariable_vect(cst, alpha=1E16):
     alphaxcst = alpha * cst_array
 
     max_alphax = np.amax(alphaxcst, axis=1)
-
+    warnings.filterwarnings("ignore", category=RuntimeWarning)
     k = max_alphax - max_exp
     exp_func = np.maximum(min_exp, alpha * cst_array -
                           np.repeat(k, cst_array.shape[1]).reshape(cst_array.shape))
@@ -256,4 +261,59 @@ def get_dcons_smooth_dvariable_vect(cst, alpha=1E16):
     for i in np.arange(cst_array.shape[0]):
         grad_value[i][np.logical_not(non_max_idx)[i]] = grad_val_max[i]
 
+    warnings.filterwarnings("ignore", category=RuntimeWarning)
     return grad_value
+
+
+def pseudo_abs_obj(value: np.ndarray, eps= 1e-2):
+    """compute the pseudo absolute value of x, where x is a 1dimensional array"""
+    return np.array([np.sum(np.sqrt(value ** 2 + eps ** 2) - eps)]) / len(value)
+
+
+def d_pseudo_abs_obj(value, d_value, eps=1e-2):
+    """compute the derivative of the pseudo absolute value of x, where x is a 1dimensional array"""
+    return d_value.T @  (value  / np.sqrt(value ** 2 + eps ** 2)) / len(value)
+
+
+def keep_positive_only(value: np.ndarray):
+    """values must be a 1dimensional np array"""
+    result = np.maximum(value, 0)
+    return result.mean()
+
+
+def keep_negative_only(value: np.ndarray):
+    """values must be a 1dimensional np array"""
+    result = np.minimum(value, 0)
+    return result.mean()
+
+
+def derivative_d_keep_positive_only(value: np.ndarray):
+    """values must be a 1dimensional np array"""
+    return ((value > 0) * 1) / len(value)
+
+
+def derivative_d_keep_negative_only(value: np.ndarray):
+    """values must be a 1dimensional np array"""
+    return ((value < 0) * 1) / len(value)
+
+
+def keep_positive_only_square(value: np.ndarray):
+    """values must be a 1dimensional np array"""
+    result = np.maximum(value, 0) ** 2
+    return result.mean()
+
+
+def keep_negative_only_square(value: np.ndarray):
+    """values must be a 1dimensional np array"""
+    result = np.minimum(value, 0) ** 2
+    return result.mean()
+
+
+def derivative_d_keep_positive_only_square(value: np.ndarray):
+    """values must be a 1dimensional np array"""
+    return ((value > 0) * 1) * value * 2/ len(value)
+
+
+def derivative_d_keep_negative_only_square(value: np.ndarray):
+    """values must be a 1dimensional np array"""
+    return ((value < 0) * 1) * value * 2/ len(value)
