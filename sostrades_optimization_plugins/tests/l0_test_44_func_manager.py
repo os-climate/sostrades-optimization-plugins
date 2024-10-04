@@ -720,9 +720,8 @@ class TestFuncManager(unittest.TestCase):
 
         self.ee.execute()
 
-        proxy_optim = self.ee.root_process.proxy_disciplines[0]
-        formulation = proxy_optim.mdo_discipline_wrapp.mdo_discipline.formulation
-        optim_iter = formulation.opt_problem.current_iter
+        funcmanager = self.ee.root_process.proxy_disciplines[0].proxy_disciplines[0].proxy_disciplines[-1]
+        optim_iter = funcmanager.mdo_discipline_wrapp.mdo_discipline.sos_wrapp.iter
         optim_name = "SellarOptimScenario"
         optim_output_df = self.ee.dm.get_value(
             f'{self.name}.{optim_name}.SellarCoupling.FunctionManager.{FunctionManagerDisc.OPTIM_OUTPUT_DF}')
