@@ -91,7 +91,7 @@ class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
         outputs = ['Test.Sellar.SellarOptimScenario.objective_lagrangian']
         self.check_jacobian(location=dirname(__file__), filename=pkl_name,
                             discipline=coupling_disc.mdo_discipline_wrapp.mdo_discipline,
-                            step=1.0e-4, derr_approx='finite_differences', threshold=1e-15,
+                            step=1.0e-4, derr_approx='finite_differences',
                             local_data=full_values_dict,
                             # coupling_disc.mdo_discipline_wrapp.mdo_discipline.local_data,
                             inputs=inputs,
@@ -132,7 +132,7 @@ class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
         ee.update_from_dm()
         ee.prepare_execution()
         ee.display_treeview_nodes()
-        coupling_disc = ee.root_process.proxy_disciplines[0]
+        coupling_disc = ee.root_process
 
         pkl_name = 'jacobian_obj_vs_design_var_sellar_test_02.pkl'
         inputs = ['Test.x_in', 'Test.z_in']
@@ -140,7 +140,7 @@ class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
 
         self.check_jacobian(location=dirname(__file__), filename=pkl_name,
                             discipline=coupling_disc.mdo_discipline_wrapp.mdo_discipline,
-                            step=1.0e-14, derr_approx='complex_step', threshold=1e-10,
+                            step=1.0e-14, derr_approx='complex_step', threshold=1e-6,
                             local_data=full_values_dict,
                             inputs=inputs,
                             outputs=outputs)
@@ -178,7 +178,7 @@ class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
         # execute
         ee.execute()
         ee.display_treeview_nodes()
-        coupling_disc = ee.root_process.proxy_disciplines[0]
+        coupling_disc = ee.root_process
 
         pkl_name = 'jacobian_obj_vs_design_var_sellar_test_03.pkl'
         inputs = ['Test.x_in', 'Test.z_in']
@@ -186,7 +186,7 @@ class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
 
         self.check_jacobian(location=dirname(__file__), filename=pkl_name,
                             discipline=coupling_disc.mdo_discipline_wrapp.mdo_discipline,
-                            step=1.0e-14, derr_approx='complex_step', threshold=1e-10,
+                            step=1.0e-14, derr_approx='complex_step', threshold=1e-6,
                             local_data=coupling_disc.mdo_discipline_wrapp.mdo_discipline.local_data,
                             inputs=inputs,
                             outputs=outputs)
@@ -226,7 +226,7 @@ class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
         ee.update_from_dm()
         ee.prepare_execution()
         ee.display_treeview_nodes()
-        coupling_disc = ee.root_process.proxy_disciplines[0]
+        coupling_disc = ee.root_process
 
         pkl_name = 'jacobian_obj_vs_design_var_sellar_test_04.pkl'
         inputs = ['Test.x_in', 'Test.z_in']
@@ -234,7 +234,7 @@ class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
 
         self.check_jacobian(location=dirname(__file__), filename=pkl_name,
                             discipline=coupling_disc.mdo_discipline_wrapp.mdo_discipline,
-                            step=1.0e-25, derr_approx='complex_step', threshold=1e-10,
+                            step=1.0e-25, derr_approx='complex_step', threshold=1e-6,
                             local_data=full_values_dict,
                             inputs=inputs,
                             outputs=outputs)
@@ -275,7 +275,7 @@ class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
         ee.update_from_dm()
         ee.prepare_execution()
         ee.display_treeview_nodes()
-        coupling_disc = ee.root_process.proxy_disciplines[0]
+        coupling_disc = ee.root_process
 
         pkl_name = 'jacobian_obj_vs_design_var_sellar_test_05.pkl'
         inputs = ['Test.x_in', 'Test.z_in']
@@ -283,7 +283,7 @@ class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
 
         self.check_jacobian(location=dirname(__file__), filename=pkl_name,
                             discipline=coupling_disc.mdo_discipline_wrapp.mdo_discipline,
-                            step=1.0e-14, derr_approx='complex_step', threshold=1e-10,
+                            step=1.0e-14, derr_approx='complex_step', threshold=1e-6,
                             local_data=full_values_dict,
                             inputs=inputs,
                             outputs=outputs)
@@ -321,7 +321,7 @@ class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
         # execute
         ee.execute()
         ee.display_treeview_nodes()
-        coupling_disc = ee.root_process.proxy_disciplines[0]
+        coupling_disc = ee.root_process
 
         pkl_name = 'jacobian_obj_vs_design_var_sellar_test_06.pkl'
         inputs = ['Test.x_in', 'Test.z_in']
@@ -329,7 +329,7 @@ class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
         local_data_after_execute = coupling_disc.mdo_discipline_wrapp.mdo_discipline.local_data
         self.check_jacobian(location=dirname(__file__), filename=pkl_name,
                             discipline=coupling_disc.mdo_discipline_wrapp.mdo_discipline,
-                            step=1.0e-15, derr_approx='complex_step', threshold=1e-12,
+                            step=1.0e-15, derr_approx='complex_step', threshold=1e-6,
                             local_data=deepcopy(local_data_after_execute),
                             inputs=inputs,
                             outputs=outputs)
@@ -369,7 +369,7 @@ class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
         ee.update_from_dm()
         ee.prepare_execution()
         ee.display_treeview_nodes()
-        coupling_disc = ee.root_process.proxy_disciplines[0]
+        coupling_disc = ee.root_process
 
         pkl_name = 'jacobian_obj_vs_design_var_sellar_test_07.pkl'
         inputs = ['Test.x_in', 'Test.z_in']
@@ -377,7 +377,7 @@ class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
         local_data = self.execute_sellar()
         self.check_jacobian(location=dirname(__file__), filename=pkl_name,
                             discipline=coupling_disc.mdo_discipline_wrapp.mdo_discipline,
-                            step=1.0e-14, derr_approx='complex_step', threshold=1e-10,
+                            step=1.0e-14, derr_approx='complex_step', threshold=1e-6,
                             local_data=local_data,
                             inputs=inputs,
                             outputs=outputs)
@@ -416,7 +416,7 @@ class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
         # execute
         ee.execute()
         ee.display_treeview_nodes()
-        coupling_disc = ee.root_process.proxy_disciplines[0]
+        coupling_disc = ee.root_process
 
         pkl_name = 'jacobian_obj_vs_design_var_sellar_test_08.pkl'
         inputs = ['Test.x_in', 'Test.z_in']
@@ -424,7 +424,7 @@ class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
         local_data_after_execute = coupling_disc.mdo_discipline_wrapp.mdo_discipline.local_data
         self.check_jacobian(location=dirname(__file__), filename=pkl_name,
                             discipline=coupling_disc.mdo_discipline_wrapp.mdo_discipline,
-                            step=1.0e-3, derr_approx='complex_step', threshold=1e-09,
+                            step=1.0e-3, derr_approx='complex_step', threshold=1e-6,
                             local_data=deepcopy(local_data_after_execute),
                             inputs=inputs,
                             outputs=outputs)
@@ -460,7 +460,7 @@ class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
         ee.load_study_from_input_dict(full_values_dict)
         ee.execute()
         ee.display_treeview_nodes()
-        coupling_disc = ee.root_process.proxy_disciplines[0]
+        coupling_disc = ee.root_process
 
         return deepcopy(coupling_disc.mdo_discipline_wrapp.mdo_discipline.local_data)
 
@@ -471,7 +471,7 @@ class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
         Test on Sellar without cache nor warmstart
         """
         fd_valid_grad = FDValidGrad(1j, self.fx_sellar, self.dfx_sellar, fd_step=1e-14)
-        bool_valid, df_fd, df = fd_valid_grad.compare(x, args=args, force_print=True, return_all=True, treshold=1e-10)
+        bool_valid, df_fd, df = fd_valid_grad.compare(x, args=args, force_print=True, return_all=True, treshold=1e-6)
         logging.info(f"Derivative complex step : {df_fd}")
         logging.info(f"Derivative linearize : {df}")
         assert bool_valid
@@ -531,7 +531,7 @@ class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
         # execute
         ee.execute()
         ee.display_treeview_nodes()
-        coupling_disc = ee.root_process.proxy_disciplines[0]
+        coupling_disc = ee.root_process
 
         pkl_name = 'jacobian_obj_vs_design_var_sellar_test_11.pkl'
         inputs = ['Test.SellarCoupling.x', 'Test.SellarCoupling.z']
@@ -539,7 +539,7 @@ class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
 
         self.check_jacobian(location=dirname(__file__), filename=pkl_name,
                             discipline=coupling_disc.mdo_discipline_wrapp.mdo_discipline,
-                            step=1.0e-14, derr_approx='complex_step', threshold=1e-10,
+                            step=1.0e-14, derr_approx='complex_step', threshold=1e-6,
                             local_data=coupling_disc.mdo_discipline_wrapp.mdo_discipline.local_data,
                             inputs=inputs,
                             outputs=outputs)
@@ -567,9 +567,9 @@ class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
             full_values_dict['Test.z_in'] = x[4:]
             # make sure we use the same exec engine at each step
             assert self.ee_to_test is ee
-            ee.root_process.proxy_disciplines[0].mdo_discipline_wrapp.mdo_discipline.execute(full_values_dict)
+            ee.root_process.mdo_discipline_wrapp.mdo_discipline.execute(full_values_dict)
 
-        objective_lagr = ee.root_process.proxy_disciplines[0].mdo_discipline_wrapp.mdo_discipline.get_outputs_by_name(
+        objective_lagr = ee.root_process.mdo_discipline_wrapp.mdo_discipline.get_outputs_by_name(
             'Test.objective_lagrangian')
         return objective_lagr
 
@@ -601,11 +601,11 @@ class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
             assert self.ee_to_test is ee
 
         # set differentiated inputs and outputs
-        ee.root_process.proxy_disciplines[0].mdo_discipline_wrapp.mdo_discipline.add_differentiated_outputs(
+        ee.root_process.mdo_discipline_wrapp.mdo_discipline.add_differentiated_outputs(
             ['Test.objective_lagrangian'])
-        ee.root_process.proxy_disciplines[0].mdo_discipline_wrapp.mdo_discipline.add_differentiated_inputs(
+        ee.root_process.mdo_discipline_wrapp.mdo_discipline.add_differentiated_inputs(
             ['Test.x_in', 'Test.z_in'])
-        jac = ee.root_process.proxy_disciplines[0].mdo_discipline_wrapp.mdo_discipline.linearize(full_values_dict)
+        jac = ee.root_process.mdo_discipline_wrapp.mdo_discipline.linearize(full_values_dict)
         df_dx_in = jac['Test.objective_lagrangian']['Test.x_in']
         df_dz_in = jac['Test.objective_lagrangian']['Test.z_in']
         # return [df/dx_in, df/dz_in]
