@@ -34,6 +34,11 @@ from sostrades_optimization_plugins.sos_processes.test.test_sellar_sub_opt_w_des
     Study,
 )
 
+#FIXME: temporary to check if GEMSEO_PATH is creating the issue with GMRES_PETSC
+import os
+from sostrades_core.execution_engine import gemseo_addon
+os.environ["GEMSEO_PATH"] = os.path.abspath(os.path.dirname(gemseo_addon.__file__))
+## END FIXME
 
 class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
     """
