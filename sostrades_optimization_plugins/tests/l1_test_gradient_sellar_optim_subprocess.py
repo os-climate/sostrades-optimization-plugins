@@ -34,6 +34,7 @@ from sostrades_optimization_plugins.sos_processes.test.test_sellar_sub_opt_w_des
     Study,
 )
 
+
 class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
     """
     Class to test Sellar sub process derivatives in several cases.
