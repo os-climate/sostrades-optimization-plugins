@@ -17,12 +17,6 @@ import logging
 from copy import deepcopy
 from os.path import dirname
 
-#FIXME: temporary to check if GEMSEO_PATH is creating the issue with GMRES_PETSC
-import os
-from sostrades_core.execution_engine import gemseo_addon
-os.environ["GEMSEO_PATH"] = os.path.abspath(os.path.dirname(gemseo_addon.__file__))
-## END FIXME
-
 import numpy as np
 from sostrades_core.execution_engine.execution_engine import ExecutionEngine
 from sostrades_core.tests.core.abstract_jacobian_unit_test import (
