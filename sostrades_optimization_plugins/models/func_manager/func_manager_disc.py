@@ -712,7 +712,6 @@ class FunctionManagerDisc(OptimManagerDisc):
 
             elif var_f_type == self.EQ_CONSTRAINT:
                 input_var_value = inputs_dict[variable_name]
-                dict_grad_eq[variable_name] = grad_val_eq[j]
                 if isinstance(input_var_value, np.ndarray):
                     if self.func_manager.aggr_mod_eq == 'smooth_max':
                         grad_lagr_val = np.array(grad_value_l[variable_name]) * grad_val_eq[j]
