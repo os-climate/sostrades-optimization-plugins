@@ -657,14 +657,13 @@ class FunctionManagerDisc(OptimManagerDisc):
                     raise Exception(
                         'Gradients for constraints which are not dataframes or arrays are not yet implemented')
 
-        dict_grad_ineq = {}
         dict_grad_eq = {}
         grad_val_ineq = {}
         grad_val_eq = {}
         # g'(h(x)) * h'(x)
-        if len(value_gh_l) != 0:
+        if self.func_manager.aggr_mod_ineq == 'smooth_max' and len(value_gh_l) != 0:
             grad_val_ineq = get_dsmooth_dvariable(value_gh_l)
-        if len(value_ghk_l) != 0:
+        if self.func_manager.aggr_mod_ineq == 'smooth_max' and len(value_ghk_l) != 0:
             grad_val_eq = get_dsmooth_dvariable(value_ghk_l)
         i = 0
         j = 0
@@ -674,7 +673,6 @@ class FunctionManagerDisc(OptimManagerDisc):
             if var_f_type == self.INEQ_CONSTRAINT:
 
                 input_var_value = inputs_dict[variable_name]
-                dict_grad_ineq[variable_name] = grad_val_ineq[i]
                 if isinstance(input_var_value, np.ndarray):
 
                     if self.func_manager.aggr_mod_ineq == 'smooth_max':
