@@ -76,40 +76,42 @@ def smooth_maximum_vect(cst, alpha=3):
 
 
 def get_dsmooth_dvariable(cst, alpha=3):
-    max_exp = 650.0  # max value for exponent input, higher value gives infinity
-    min_exp = -300
-    alphaxcst = alpha * np.array(cst)
-    max_alphax = np.max(alphaxcst)
-    #index_max = alphaxcst.index(max_alphax)
-    k = max_alphax - max_exp
-    exp_func = np.maximum(min_exp, alpha * np.array(cst) - k)
-    den = np.sum(np.exp(exp_func))
-    num = np.sum(np.array(cst) * np.exp(exp_func))
-    d_den = []
-    d_num = []
-    grad_value = []
-    for elem in cst:
-        if alpha * elem == max_alphax:
-            dden = np.sum([-alpha * np.exp(max(min_exp, alpha * elem_cst - k))
-                           for elem_cst in cst if elem_cst * alpha != max_alphax])
-            # derivative of den wto cstmax is 0
-            dden = dden + 0.0
-            d_den.append(dden)
-            dnum = np.sum([-alpha * elem_cst * np.exp(max(min_exp, alpha * elem_cst - k))
-                           for elem_cst in cst if elem_cst * alpha != max_alphax])
-            dnum = dnum + 1.0 * np.exp(alpha * np.array(elem) - k)
-            d_num.append(dnum)
-            #grad_val_i = dnum / den - (num / den) * (dden / den)
-        else:
-            exp_func = max(min_exp, alpha * elem - k)
-            dden = alpha * np.exp(exp_func)
-            d_den.append(dden)
-            dnum = elem * (alpha * np.exp(exp_func)
-                           ) + np.exp(exp_func)
-            d_num.append(dnum)
-            # add if den != 0
-        grad_val_i = dnum / den - (num / den) * (dden / den)
-        grad_value.append(grad_val_i)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        max_exp = 650.0  # max value for exponent input, higher value gives infinity
+        min_exp = -300
+        alphaxcst = alpha * np.array(cst)
+        max_alphax = np.max(alphaxcst)
+        #index_max = alphaxcst.index(max_alphax)
+        k = max_alphax - max_exp
+        exp_func = np.maximum(min_exp, alpha * np.array(cst) - k)
+        den = np.sum(np.exp(exp_func))
+        num = np.sum(np.array(cst) * np.exp(exp_func))
+        d_den = []
+        d_num = []
+        grad_value = []
+        for elem in cst:
+            if alpha * elem == max_alphax:
+                dden = np.sum([-alpha * np.exp(max(min_exp, alpha * elem_cst - k))
+                               for elem_cst in cst if elem_cst * alpha != max_alphax])
+                # derivative of den wto cstmax is 0
+                dden = dden + 0.0
+                d_den.append(dden)
+                dnum = np.sum([-alpha * elem_cst * np.exp(max(min_exp, alpha * elem_cst - k))
+                               for elem_cst in cst if elem_cst * alpha != max_alphax])
+                dnum = dnum + 1.0 * np.exp(alpha * np.array(elem) - k)
+                d_num.append(dnum)
+                #grad_val_i = dnum / den - (num / den) * (dden / den)
+            else:
+                exp_func = max(min_exp, alpha * elem - k)
+                dden = alpha * np.exp(exp_func)
+                d_den.append(dden)
+                dnum = elem * (alpha * np.exp(exp_func)
+                               ) + np.exp(exp_func)
+                d_num.append(dnum)
+                # add if den != 0
+            grad_val_i = dnum / den - (num / den) * (dden / den)
+            grad_value.append(grad_val_i)
     return grad_value
 
 
@@ -182,7 +184,6 @@ def get_dsoft_maximum_vect(cst, k=7e2):
     """
     cst_array = np.array(cst)
     cst_array_limited = np.sign(cst_array)*compute_func_with_exp_min(np.abs(cst_array), 1.0E-15/k)
-    result = np.log(np.sum(np.exp(k * cst_array_limited), axis=1)) / k
 
     d_cst_array = np.ones(cst_array.shape)
     d_cst_array_limited = d_cst_array * \
