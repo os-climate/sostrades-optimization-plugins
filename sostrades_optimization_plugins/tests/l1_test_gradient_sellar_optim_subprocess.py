@@ -569,8 +569,8 @@ class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
             # make sure we use the same exec engine at each step
             assert self.ee_to_test is ee
             ee.root_process.discipline_wrapp.discipline.execute(full_values_dict)
-        objective_lagr = ee.root_process.discipline_wrapp.discipline.get_outputs_by_name(
-            'Test.objective_lagrangian')
+        objective_lagr = ee.root_process.discipline_wrapp.discipline.io.data[
+            'Test.objective_lagrangian']
         return objective_lagr
 
     def dfx_sellar(self, x, *args):
