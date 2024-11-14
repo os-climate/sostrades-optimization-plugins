@@ -568,8 +568,8 @@ class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
             full_values_dict['Test.z_in'] = x[4:]
             # make sure we use the same exec engine at each step
             assert self.ee_to_test is ee
-            ee.root_process.mdo_discipline_wrapp.mdo_discipline.execute(full_values_dict)
-        objective_lagr = ee.root_process.mdo_discipline_wrapp.mdo_discipline.get_outputs_by_name(
+            ee.root_process.discipline_wrapp.discipline.execute(full_values_dict)
+        objective_lagr = ee.root_process.discipline_wrapp.discipline.get_outputs_by_name(
             'Test.objective_lagrangian')
         return objective_lagr
 
