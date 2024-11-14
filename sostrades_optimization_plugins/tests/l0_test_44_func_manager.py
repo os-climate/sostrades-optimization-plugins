@@ -330,7 +330,7 @@ class TestFuncManager(unittest.TestCase):
 
         self.assertEqual(outputs[OBJECTIVE_LAGR][0], res)
 
-        disc_techno = ee.root_process.proxy_disciplines[0].mdo_discipline_wrapp.mdo_discipline
+        disc_techno = ee.root_process.proxy_disciplines[0].discipline_wrapp.discipline
 
         assert disc_techno.check_jacobian(
             input_data=disc_techno.local_data,
@@ -422,7 +422,7 @@ class TestFuncManager(unittest.TestCase):
 
         self.assertEqual(outputs[OBJECTIVE_LAGR][0], res)
 
-        disc_techno = ee.root_process.proxy_disciplines[0].mdo_discipline_wrapp.mdo_discipline
+        disc_techno = ee.root_process.proxy_disciplines[0].discipline_wrapp.discipline
 
         assert disc_techno.check_jacobian(
             input_data=disc_techno.local_data,
@@ -573,7 +573,7 @@ class TestFuncManager(unittest.TestCase):
                       outputs[INEQ_CONSTRAINT][0] +
                       outputs[EQ_CONSTRAINT][0])
 
-        disc_techno = ee.root_process.proxy_disciplines[0].mdo_discipline_wrapp.mdo_discipline
+        disc_techno = ee.root_process.proxy_disciplines[0].discipline_wrapp.discipline
 
         assert disc_techno.check_jacobian(
             input_data=disc_techno.local_data,
@@ -678,7 +678,7 @@ class TestFuncManager(unittest.TestCase):
                       outputs[INEQ_CONSTRAINT][0] +
                       outputs[EQ_CONSTRAINT][0])
 
-        disc_techno = ee.root_process.proxy_disciplines[0].mdo_discipline_wrapp.mdo_discipline
+        disc_techno = ee.root_process.proxy_disciplines[0].discipline_wrapp.discipline
 
         assert disc_techno.check_jacobian(
             input_data=disc_techno.local_data,
@@ -721,7 +721,7 @@ class TestFuncManager(unittest.TestCase):
         self.ee.execute()
 
         funcmanager = self.ee.root_process.proxy_disciplines[0].proxy_disciplines[0].proxy_disciplines[-1]
-        optim_iter = funcmanager.mdo_discipline_wrapp.mdo_discipline.sos_wrapp.iter
+        optim_iter = funcmanager.discipline_wrapp.discipline.sos_wrapp.iter
         optim_name = "SellarOptimScenario"
         optim_output_df = self.ee.dm.get_value(
             f'{self.name}.{optim_name}.SellarCoupling.FunctionManager.{FunctionManagerDisc.OPTIM_OUTPUT_DF}')
@@ -780,7 +780,7 @@ class TestFuncManager(unittest.TestCase):
         # -- retrieve outputs
         disc = ee.dm.get_disciplines_with_name(
             f'{self.name}.{func_mng_name}')[0]
-        disc_techno = ee.root_process.proxy_disciplines[0].mdo_discipline_wrapp.mdo_discipline
+        disc_techno = ee.root_process.proxy_disciplines[0].discipline_wrapp.discipline
 
         assert disc_techno.check_jacobian(
             input_data=disc_techno.local_data,
@@ -835,7 +835,7 @@ class TestFuncManager(unittest.TestCase):
             # -- retrieve outputs
             disc = ee.dm.get_disciplines_with_name(
                 f'{self.name}.{func_mng_name}')[0]
-            disc_techno = ee.root_process.proxy_disciplines[0].mdo_discipline_wrapp.mdo_discipline
+            disc_techno = ee.root_process.proxy_disciplines[0].discipline_wrapp.discipline
 
             assert disc_techno.check_jacobian(
                 input_data=disc_techno.local_data,
@@ -890,7 +890,7 @@ class TestFuncManager(unittest.TestCase):
             # -- retrieve outputs
             disc = ee.dm.get_disciplines_with_name(
                 f'{self.name}.{func_mng_name}')[0]
-            disc_techno = ee.root_process.proxy_disciplines[0].mdo_discipline_wrapp.mdo_discipline
+            disc_techno = ee.root_process.proxy_disciplines[0].discipline_wrapp.discipline
 
             assert disc_techno.check_jacobian(
                 input_data=disc_techno.local_data,
@@ -945,7 +945,7 @@ class TestFuncManager(unittest.TestCase):
             # -- retrieve outputs
             disc = ee.dm.get_disciplines_with_name(
                 f'{self.name}.{func_mng_name}')[0]
-            disc_techno = ee.root_process.proxy_disciplines[0].mdo_discipline_wrapp.mdo_discipline
+            disc_techno = ee.root_process.proxy_disciplines[0].discipline_wrapp.discipline
 
             assert disc_techno.check_jacobian(
                 input_data=disc_techno.local_data,
