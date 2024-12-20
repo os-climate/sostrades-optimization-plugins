@@ -167,6 +167,6 @@ class TestDesignVar(AbstractJacobianUnittest):
 
 
         self.check_jacobian(local_data=self.values_dict, location=dirname(__file__), filename='jacobian_design_var_bspline.pkl',
-                            discipline=disc.mdo_discipline_wrapp.mdo_discipline, step=1e-15, inputs=input_names,
+                            discipline=disc.discipline_wrapp.discipline, step=1e-15, inputs=input_names,
                             outputs=output_names, derr_approx='complex_step')
 
