@@ -98,7 +98,7 @@ class GradiantAssetDiscTestCase(AbstractJacobianUnittest):
         self.ee.configure()
         self.ee.execute()
 
-        disc = self.ee.root_process.proxy_disciplines[0].mdo_discipline_wrapp.mdo_discipline
+        disc = self.ee.root_process.proxy_disciplines[0].discipline_wrapp.discipline
 
         self.check_jacobian(location=dirname(__file__),
                             filename=f'jacobian_{self.study_name}_default_dataframe_fill.pkl',
@@ -143,7 +143,7 @@ class GradiantAssetDiscTestCase(AbstractJacobianUnittest):
         self.ee.configure()
         self.ee.execute()
 
-        disc = self.ee.root_process.proxy_disciplines[0].mdo_discipline_wrapp.mdo_discipline
+        disc = self.ee.root_process.proxy_disciplines[0].discipline_wrapp.discipline
 
         self.check_jacobian(location=dirname(__file__),
                             filename=f'jacobian_{self.study_name}_dataframe_fill_one_column_for_key.pkl',
@@ -201,7 +201,7 @@ class GradiantAssetDiscTestCase(AbstractJacobianUnittest):
         self.ee.configure()
         self.ee.execute()
 
-        disc = self.ee.root_process.proxy_disciplines[0].mdo_discipline_wrapp.mdo_discipline
+        disc = self.ee.root_process.proxy_disciplines[0].discipline_wrapp.discipline
 
         self.check_jacobian(location=dirname(__file__),
                             filename=f'jacobian_{self.study_name}_dataframe_fill_one_column_for_key_1element_deactivated.pkl',
@@ -259,7 +259,7 @@ class GradiantAssetDiscTestCase(AbstractJacobianUnittest):
         self.ee.configure()
         self.ee.execute()
 
-        disc = self.ee.root_process.proxy_disciplines[0].mdo_discipline_wrapp.mdo_discipline
+        disc = self.ee.root_process.proxy_disciplines[0].discipline_wrapp.discipline
 
         self.check_jacobian(location=dirname(__file__),
                             filename=f'jacobian_{self.study_name}_dataframe_fill_one_column_for_key_2element_deactivated.pkl',
