@@ -138,11 +138,11 @@ class FunctionManagerDisc(OptimManagerDisc):
         Get current iter from the optimisation problem in the formulation object built by GEMSEO
         If no formulation then we compute in the old way, iter is the number of method calls
         '''
-        if self.__formulation is not None:
-            return self.__formulation.opt_problem.current_iter
-        else:
-            self.iter += 1
-            return self.iter
+        # if self.__formulation is not None:
+        #     return self.__formulation.optimization_problem.current_iter
+        # else:
+        self.iter += 1
+        return self.iter
 
     def setup_sos_disciplines(self):
         '''

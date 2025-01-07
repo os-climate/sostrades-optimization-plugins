@@ -57,7 +57,8 @@ class DesignVar(object):
         '''
         Configure with inputs_dict from the discipline
         '''
-
+        self.design_var_descriptor = inputs_dict[self.DESIGN_VAR_DESCRIPTOR]
+        self.dspace = inputs_dict[self.DESIGN_SPACE]
         self.output_dict = {}
         list_ctrl = self.design_var_descriptor.keys()
 
