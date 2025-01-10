@@ -19,9 +19,7 @@ from typing import TYPE_CHECKING, Union
 from sostrades_core.execution_engine.sos_wrapp import SoSWrapp
 
 if TYPE_CHECKING:
-    from climateeconomics.core.tools.differentiable_model import DifferentiableModel
-
-    from sostrades_optimization_plugins.models.differentiable_model import (
+     from sostrades_optimization_plugins.models.differentiable_model import (
         DifferentiableModel,
     )
 
