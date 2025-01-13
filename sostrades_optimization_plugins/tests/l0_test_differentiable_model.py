@@ -18,7 +18,10 @@ import unittest
 
 import numpy as np
 import pandas as pd
-from climateeconomics.core.tools.differentiable_model import DifferentiableModel
+
+from sostrades_optimization_plugins.models.differentiable_model import (
+    DifferentiableModel,
+)
 
 
 class ComplexTestModel(DifferentiableModel):

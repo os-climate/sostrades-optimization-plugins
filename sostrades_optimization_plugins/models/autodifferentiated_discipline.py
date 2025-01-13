@@ -94,8 +94,6 @@ class AutodifferentiedDisc(SoSWrapp):
             gradients = self.model.compute_partial(output_name=output_path, input_names=all_inputs_model_path)
             handle_gradients_wrt_inputs(output_path=output_path, gradients=gradients)
 
-        a = 1
-
 
     def _auto_configure_jacobian_variables(self):
         self.coupling_inputs = []
