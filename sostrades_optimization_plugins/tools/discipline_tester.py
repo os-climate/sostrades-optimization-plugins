@@ -20,7 +20,10 @@ from sostrades_core.execution_engine.execution_engine import ExecutionEngine
 from sostrades_core.tests.core.abstract_jacobian_unit_test import (
     AbstractJacobianUnittest,
 )
-from sostrades_optimization_plugins.models.autodifferentiated_discipline import AutodifferentiedDisc
+
+from sostrades_optimization_plugins.models.autodifferentiated_discipline import (
+    AutodifferentiedDisc,
+)
 
 
 def discipline_test_function(module_path: str, name: str, model_name: str,

@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from copy import deepcopy
-from typing import Callable, Union, Any
+from typing import Any, Callable, Union
 
 try:
     import jax
@@ -32,7 +32,6 @@ import autograd.numpy as anp
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-from climateeconomics.glossarycore import GlossaryCore
 
 ArrayLike = Union[list[float], npt.NDArray[np.float64]]
 InputType = Union[float, int, ArrayLike, pd.DataFrame]
