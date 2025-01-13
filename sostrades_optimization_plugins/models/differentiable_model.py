@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from copy import deepcopy
-from typing import Callable, Union
+from typing import Callable, Union, Any
 
 try:
     import jax
@@ -295,6 +295,23 @@ class DifferentiableModel:
                 df = self.get_dataframe(key)
                 if df is not None:
                     result[key] = df
+
+        return result
+
+    def get_all_variables(self, get_from: str = "outputs") -> dict[str, Any]:
+        """Retrieves all variables (in or out) while converting dataframes"""
+        result = self.get_dataframes(get_from=get_from)
+        self.dataframes_outputs_colnames = self.get_output_df_names()
+        if get_from == "inputs":
+            source = self.inputs
+        elif get_from == "outputs":
+            source = self.outputs
+        else:
+            source = self.outputs
+
+        for key, value in source.items():
+            if ":" not in key and not isinstance(value, dict):
+                result[key] = value
 
         return result
 
@@ -789,56 +806,6 @@ class DifferentiableModel:
             "max_relative_error": float(max_rel_error),
             "within_tolerance": within_tolerance,
         }
-
-    def compute_jacobians_custom(
-        self, outputs: list[str], inputs: list[str]
-    ) -> dict[str : dict[str : dict[str : dict[str : np.ndarray]]]]:
-        """
-        Return a dictionnary 'gradients' containing gradients for SoSwrapp disciplines.
-
-        gradients[output df name][output column name][input df name][input column name] = value.
-
-        """
-
-        # Make sure output column names are known:
-        self.dataframes_outputs_colnames = self.get_output_df_names()
-
-        gradients = {}
-        all_inputs_paths = []
-        for input_df_name in inputs:
-            all_inputs_paths.extend(self.get_df_input_dotpaths(input_df_name))
-        all_inputs_paths = list(
-            filter(
-                lambda x: not (str(x).endswith(f":{GlossaryCore.Years}")),
-                all_inputs_paths,
-            )
-        )
-        for output in outputs:
-            gradients[output] = {}
-            output_columns_paths = list(
-                filter(
-                    lambda x: not (str(x).endswith(f":{GlossaryCore.Years}")),
-                    self.get_df_output_dotpaths(output),
-                )
-            )
-            for output_path in output_columns_paths:
-                gradients_output_path = self.compute_partial(
-                    output_name=output_path, input_names=all_inputs_paths
-                )
-                output_colname = output_path.split(f"{output}:")[1]
-                gradients[output][output_colname] = {}
-                for ip, value_grad in gradients_output_path.items():
-                    input_varname, input_varname_colname = ip.split(":")
-                    if input_varname in gradients[output][output_colname]:
-                        gradients[output][output_colname][input_varname][
-                            input_varname_colname
-                        ] = value_grad
-                    else:
-                        gradients[output][output_colname][input_varname] = {
-                            input_varname_colname: value_grad
-                        }
-
-        return gradients
 
     def get_df_input_dotpaths(self, df_inputname: str) -> dict[str : list[str]]:
         """Get dataframe inputs dotpaths.
