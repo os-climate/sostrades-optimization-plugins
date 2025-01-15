@@ -21,6 +21,10 @@ from sostrades_core.tests.core.abstract_jacobian_unit_test import (
     AbstractJacobianUnittest,
 )
 
+from sostrades_optimization_plugins.models.autodifferentiated_discipline import (
+    AutodifferentiedDisc,
+)
+
 
 def discipline_test_function(module_path: str, name: str, model_name: str,
                              inputs_dict: dict, namespaces_dict: dict,
@@ -63,6 +67,12 @@ def discipline_test_function(module_path: str, name: str, model_name: str,
     disc = ee.dm.get_disciplines_with_name(f'{name}.{model_name}')[0]
     filter = disc.get_chart_filter_list()
     graph_list = disc.get_post_processing_list(filter)
+
+    wrap_disc = disc.discipline_wrapp.wrapper
+    if not coupling_inputs and not coupling_outputs:
+        if isinstance(wrap_disc, AutodifferentiedDisc) and wrap_disc.autoconfigure_gradient_variables:
+            wrap_disc._auto_configure_jacobian_variables()
+            coupling_inputs, coupling_outputs = wrap_disc.coupling_inputs, wrap_disc.coupling_outputs
 
     # Show generated graphs
     if show_graphs:
