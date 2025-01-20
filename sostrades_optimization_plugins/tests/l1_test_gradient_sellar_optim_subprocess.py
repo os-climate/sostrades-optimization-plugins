@@ -52,7 +52,6 @@ class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
     - test_11_gradient_subprocess_wo_dvar_fmanager_flatten_local_data : Test Sellar without design var nor func manager
     """
 
-
     def analytic_grad_entry(self):
         return []
 
@@ -429,7 +428,6 @@ class SellarOptimSubprocessJacobianDiscTest(AbstractJacobianUnittest):
                             local_data=deepcopy(local_data_after_execute),
                             inputs=inputs,
                             outputs=outputs)
-
 
     def execute_sellar(self):
         """

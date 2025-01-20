@@ -21,6 +21,7 @@ mode: python; py-indent-offset: 4; tab-width: 4; coding: utf-8
 Generate an optimization scenario
 """
 
+
 class ProcessBuilder(BaseProcessBuilder):
 
     # ontology information
@@ -30,6 +31,7 @@ class ProcessBuilder(BaseProcessBuilder):
         'category': '',
         'version': '',
     }
+
     def get_builders(self):
         '''
         default initialisation test
@@ -50,7 +52,7 @@ class ProcessBuilder(BaseProcessBuilder):
         builder_list = self.create_builder_list(mods_dict, ns_dict=ns_dict)
         coupling_builder = self.ee.factory.create_builder_coupling("SellarCoupling")
         coupling_builder.set_builder_info('cls_builder', builder_list)
-        #coupling_builder.set_builder_info('with_data_io', True)
+        # coupling_builder.set_builder_info('with_data_io', True)
         opt_builder = self.ee.factory.create_optim_builder(
             'SellarOptimScenario', [coupling_builder])
 

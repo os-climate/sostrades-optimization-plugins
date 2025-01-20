@@ -27,6 +27,3 @@ def readjson(file_fullpath):
         print('ERROR: Cannot decode filename=', str(file_fullpath))
         print(error)
         sys.exit(1)
-
-
-

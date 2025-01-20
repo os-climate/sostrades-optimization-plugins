@@ -65,8 +65,8 @@ class Study(StudyManager):
         # f'{ns}.{self.optim_name}.c_1', f'{ns}.{self.optim_name}.c_2']
 
         disc_dict[f'{ns}.{self.optim_name}.algo_options'] = {
-            #"maxls": 6,
-            #"maxcor": 3,
+            # "maxls": 6,
+            # "maxcor": 3,
             "ftol_rel": 1e-15,
 
         }

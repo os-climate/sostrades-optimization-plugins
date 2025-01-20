@@ -82,7 +82,7 @@ def get_dsmooth_dvariable(cst, alpha=3):
         min_exp = -300
         alphaxcst = alpha * np.array(cst)
         max_alphax = np.max(alphaxcst)
-        #index_max = alphaxcst.index(max_alphax)
+        # index_max = alphaxcst.index(max_alphax)
         k = max_alphax - max_exp
         exp_func = np.maximum(min_exp, alpha * np.array(cst) - k)
         den = np.sum(np.exp(exp_func))
@@ -101,7 +101,7 @@ def get_dsmooth_dvariable(cst, alpha=3):
                                for elem_cst in cst if elem_cst * alpha != max_alphax])
                 dnum = dnum + 1.0 * np.exp(alpha * np.array(elem) - k)
                 d_num.append(dnum)
-                #grad_val_i = dnum / den - (num / den) * (dden / den)
+                # grad_val_i = dnum / den - (num / den) * (dden / den)
             else:
                 exp_func = max(min_exp, alpha * elem - k)
                 dden = alpha * np.exp(exp_func)
@@ -159,6 +159,7 @@ def get_dsmooth_dvariable_vect(cst, alpha=3):
 
     return grad_value
 
+
 def soft_maximum_vect(cst, k=7e2):
     """
     Soft maximum function to get the maximum between array of values while always remaining above or equal to the
@@ -170,29 +171,31 @@ def soft_maximum_vect(cst, k=7e2):
     https://www.johndcook.com/blog/2010/01/20/how-to-compute-the-soft-maximum/
     """
     cst_array = np.array(cst)
-    cst_array_limited = np.sign(cst_array)*compute_func_with_exp_min(np.abs(cst_array), 1.0E-15/k)
+    cst_array_limited = np.sign(cst_array) * compute_func_with_exp_min(np.abs(cst_array), 1.0E-15 / k)
     if 'complex' in str(cst_array.dtype):
-        cst_array_limited += np.imag(cst_array)*1j
-    if np.amax(abs(cst_array_limited))*k>709:
+        cst_array_limited += np.imag(cst_array) * 1j
+    if np.amax(abs(cst_array_limited)) * k > 709:
         raise ValueError('The absolute value of k*max(cst_array) is too high and would cause a floating point error')
-    result = np.log(np.sum(np.exp(k*cst_array_limited), axis=1))/k
+    result = np.log(np.sum(np.exp(k * cst_array_limited), axis=1)) / k
     return result
+
 
 def get_dsoft_maximum_vect(cst, k=7e2):
     """
     Return derivative of soft maximum
     """
     cst_array = np.array(cst)
-    cst_array_limited = np.sign(cst_array)*compute_func_with_exp_min(np.abs(cst_array), 1.0E-15/k)
+    cst_array_limited = np.sign(cst_array) * compute_func_with_exp_min(np.abs(cst_array), 1.0E-15 / k)
 
     d_cst_array = np.ones(cst_array.shape)
     d_cst_array_limited = d_cst_array * \
-                          compute_dfunc_with_exp_min(np.abs(cst_array), 1.0E-15/k)
-    d_exp = k*d_cst_array_limited*np.exp(k*cst_array_limited)
+                          compute_dfunc_with_exp_min(np.abs(cst_array), 1.0E-15 / k)
+    d_exp = k * d_cst_array_limited * np.exp(k * cst_array_limited)
     d_sum = d_exp
-    d_log = (1/k) * (d_sum / np.sum(np.exp(k*cst_array_limited), axis=1).reshape(cst_array_limited.shape[0],1))
-    d_log = np.where(d_log>1E-20, d_log, 0.0)
+    d_log = (1 / k) * (d_sum / np.sum(np.exp(k * cst_array_limited), axis=1).reshape(cst_array_limited.shape[0], 1))
+    d_log = np.where(d_log > 1E-20, d_log, 0.0)
     return d_log
+
 
 def cons_smooth_maximum_vect(cst, alpha=1E16):
     """
@@ -216,6 +219,7 @@ def cons_smooth_maximum_vect(cst, alpha=1E16):
         print('Warning in smooth_maximum! den equals 0, hard max is used')
 
     return result
+
 
 def get_dcons_smooth_dvariable_vect(cst, alpha=1E16):
     cst_array = np.array(cst)
@@ -266,14 +270,14 @@ def get_dcons_smooth_dvariable_vect(cst, alpha=1E16):
     return grad_value
 
 
-def pseudo_abs_obj(value: np.ndarray, eps= 1e-2):
+def pseudo_abs_obj(value: np.ndarray, eps=1e-2):
     """compute the pseudo absolute value of x, where x is a 1dimensional array"""
     return np.array([np.sum(np.sqrt(value ** 2 + eps ** 2) - eps)]) / len(value)
 
 
 def d_pseudo_abs_obj(value, d_value, eps=1e-2):
     """compute the derivative of the pseudo absolute value of x, where x is a 1dimensional array"""
-    return d_value.T @  (value  / np.sqrt(value ** 2 + eps ** 2)) / len(value)
+    return d_value.T @  (value / np.sqrt(value ** 2 + eps ** 2)) / len(value)
 
 
 def keep_positive_only(value: np.ndarray):
@@ -312,9 +316,9 @@ def keep_negative_only_square(value: np.ndarray):
 
 def derivative_d_keep_positive_only_square(value: np.ndarray):
     """values must be a 1dimensional np array"""
-    return ((value > 0) * 1) * value * 2/ len(value)
+    return ((value > 0) * 1) * value * 2 / len(value)
 
 
 def derivative_d_keep_negative_only_square(value: np.ndarray):
     """values must be a 1dimensional np array"""
-    return ((value < 0) * 1) * value * 2/ len(value)
+    return ((value < 0) * 1) * value * 2 / len(value)
