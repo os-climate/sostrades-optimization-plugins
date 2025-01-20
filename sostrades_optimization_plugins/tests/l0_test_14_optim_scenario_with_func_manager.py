@@ -64,10 +64,10 @@ class TestSoSOptimScenarioWithFuncManager(unittest.TestCase):
         filters = proxy_optim.get_chart_filter_list()
         graph_list = proxy_optim.get_post_processing_list(filters)
         for graph in graph_list:
-            #graph.to_plotly().show()
+            # graph.to_plotly().show()
             pass
+
 
 if '__main__' == __name__:
     cls = TestSoSOptimScenarioWithFuncManager()
     cls.setUp()
-

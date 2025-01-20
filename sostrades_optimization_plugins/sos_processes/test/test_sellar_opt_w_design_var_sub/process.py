@@ -49,8 +49,8 @@ class ProcessBuilder(BaseProcessBuilder):
 
                      }
 
-        ns_dict = {'ns_optim': self.ee.study_name ,
-                   'ns_OptimSellar': self.ee.study_name ,
+        ns_dict = {'ns_optim': self.ee.study_name,
+                   'ns_OptimSellar': self.ee.study_name,
                    'ns_functions': self.ee.study_name
                    }
 
@@ -60,6 +60,5 @@ class ProcessBuilder(BaseProcessBuilder):
         coupling_builder = self.ee.factory.create_builder_coupling(
             "SellarCoupling")
         coupling_builder.set_builder_info('cls_builder', builder_list)
-
 
         return coupling_builder

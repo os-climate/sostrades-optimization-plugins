@@ -63,7 +63,7 @@ class FunctionManager:
         self.POS_FTYPE = [self.OBJECTIVE,
                           self.INEQ_CONSTRAINT, self.EQ_CONSTRAINT]
         self.reinit()
-        #-- We could use it to log?
+        # -- We could use it to log?
 
     def reinit(self):
         """
@@ -129,13 +129,13 @@ class FunctionManager:
             dict_mod_func = {}
             dict_mod_func[self.FTYPE] = self.functions[tag][self.FTYPE]
             dict_mod_func[self.AGGR] = self.functions[tag][self.AGGR]
-            #-- All values are an np array even single values
-            #-- Weights are applied here to allow sign modification
+            # -- All values are an np array even single values
+            # -- Weights are applied here to allow sign modification
             values = weight * self.functions[tag][self.VALUE]
             aggr_type = dict_mod_func[self.AGGR]
             if self.functions[tag][self.FTYPE] == self.OBJECTIVE:
-                #-- smooth maximum of values return the value if it was a float
-                #-- return smooth maximum if objective was an array
+                # -- smooth maximum of values return the value if it was a float
+                # -- return smooth maximum if objective was an array
                 if aggr_type == self.AGGR_TYPE_SMAX:
                     res = smooth_maximum(values, alpha)
                 elif aggr_type == self.AGGR_TYPE_SUM:
@@ -145,7 +145,7 @@ class FunctionManager:
                 else:
                     raise Exception(f"Unhandled aggr_type {aggr_type}")
             elif self.functions[tag][self.FTYPE] == self.INEQ_CONSTRAINT:
-                #-- scale between (0., +inf) and take smooth maximum
+                # -- scale between (0., +inf) and take smooth maximum
                 if aggr_type == self.INEQ_NEGATIVE_WHEN_SATIFIED:
                     res = keep_positive_only(values)
                 elif aggr_type == self.INEQ_POSITIVE_WHEN_SATIFIED:
@@ -189,12 +189,12 @@ class FunctionManager:
             elif self.mod_functions[tag][self.FTYPE] == self.EQ_CONSTRAINT:
                 all_mod_eq_cst.append(self.mod_functions[tag])
 
-        #-- Objective aggregation: sum all the objectives
+        # -- Objective aggregation: sum all the objectives
         self.aggregated_functions[self.OBJECTIVE] = 0.
         for obj_dict in all_mod_obj:
             self.aggregated_functions[self.OBJECTIVE] += obj_dict[self.VALUE]
 
-        #-- Inequality constraint aggregation: takes the smooth maximum
+        # -- Inequality constraint aggregation: takes the smooth maximum
         ineq_cst_val = [ineq_dict[self.VALUE] for ineq_dict in all_mod_ineq_cst]
         ineq_cst_val = np.array(ineq_cst_val)
         if len(ineq_cst_val) > 0:
@@ -207,7 +207,7 @@ class FunctionManager:
         else:
             self.aggregated_functions[self.INEQ_CONSTRAINT] = 0.
 
-        #-- Equality constraint aggregation: takes the smooth maximum
+        # -- Equality constraint aggregation: takes the smooth maximum
         eq_cst_val = [eq_dict[self.VALUE] for eq_dict in all_mod_eq_cst]
         eq_cst_val = np.array(eq_cst_val)
         if len(eq_cst_val) > 0:
@@ -219,7 +219,7 @@ class FunctionManager:
         else:
             self.aggregated_functions[self.EQ_CONSTRAINT] = 0.
 
-        #--- Lagrangian objective calculation: sum the aggregated objective and constraints * 100.
+        # --- Lagrangian objective calculation: sum the aggregated objective and constraints * 100.
         self.mod_obj = 0.
         self.mod_obj += self.aggregated_functions[self.OBJECTIVE]
         self.mod_obj += self.aggregated_functions[self.INEQ_CONSTRAINT]
@@ -279,7 +279,7 @@ class FunctionManager:
         cst_result = np.zeros_like(values)
         for iii, val in enumerate(values):
             if val.real > eps:
-                #if val > eps: quadratic
+                # if val > eps: quadratic
                 res0 = eps * (np.exp(eps) - 1.)
                 res = res0 + val ** 2 - eps ** 2
             elif -eps < val.real < 0:
@@ -287,7 +287,7 @@ class FunctionManager:
                 res = eps * (np.exp(-val) - 1.)
             elif val.real < -eps:
                 res0 = eps * (np.exp(eps) - 1.)
-                res= res0 + (-val) - eps
+                res = res0 + (-val) - eps
             else:
                 # if 0 < val < eps: linear
                 res = eps * (np.exp(val) - 1.)
@@ -389,7 +389,7 @@ class FunctionManager:
         :return: scaled function with 0 corresponding to ideal value and 1 to anti-ideal
         """
         # TODO: consider using a positive interval and adding a maximisation flag in the sake of clarity
-        return np.array([(val - val_range[0]) / (val_range[1] - val_range[0])]).reshape((-1,)) # NB: funcmanager demands arrays of shape (N, )
+        return np.array([(val - val_range[0]) / (val_range[1] - val_range[0])]).reshape((-1,))  # NB: funcmanager demands arrays of shape (N, )
 
     @staticmethod
     def scale_function_derivative(val_range) -> float:

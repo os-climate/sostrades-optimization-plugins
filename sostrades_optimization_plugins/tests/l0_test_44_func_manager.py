@@ -283,7 +283,7 @@ class TestFuncManager(unittest.TestCase):
         # -- ~GUI inputs: selection of functions
 
         func_df = pd.DataFrame(columns=['variable', 'ftype', 'weight'])
-        func_df['variable'] = ['cst0','cst1', 'cst2', 'cst3',
+        func_df['variable'] = ['cst0', 'cst1', 'cst2', 'cst3',
                                'eqcst1', 'eqcst2', 'obj1', 'obj2']
         func_df['ftype'] = [INEQ_CONSTRAINT, INEQ_CONSTRAINT, INEQ_CONSTRAINT,
                             INEQ_CONSTRAINT, EQ_CONSTRAINT, EQ_CONSTRAINT, OBJECTIVE, OBJECTIVE]
@@ -291,7 +291,6 @@ class TestFuncManager(unittest.TestCase):
         func_df['aggr'] = [FunctionManager.INEQ_NEGATIVE_WHEN_SATIFIED] + [FunctionManager.AGGR_TYPE_SUM] * 7
         func_df['parent'] = 'obj'
         func_df['namespace'] = ''
-
 
         values_dict = {}
         values_dict[prefix + FunctionManagerDisc.FUNC_DF] = func_df
@@ -763,7 +762,6 @@ class TestFuncManager(unittest.TestCase):
         func_df['aggr'] = [FunctionManager.INEQ_NEGATIVE_WHEN_SATIFIED]
         func_df['parent'] = 'obj'
         func_df['namespace'] = ''
-
 
         values_dict = {}
         values_dict[prefix + FunctionManagerDisc.FUNC_DF] = func_df

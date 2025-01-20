@@ -70,7 +70,6 @@ class Study(StudyManager):
         disc_dict[
             f'{ns}.{self.coupling_name}.DesignVar.design_var_descriptor'] = design_var_descriptor
 
-
         # Sellar and design var inputs
         disc_dict[f'{ns}.x_in'] = array([1., 1., 1., 1.])
         disc_dict[f'{ns}.y_1'] = 5.

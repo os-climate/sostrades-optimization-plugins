@@ -45,7 +45,6 @@ class TestDesignVar(AbstractJacobianUnittest):
     def analytic_grad_entry(self):
         return []
 
-
     def setUp(self):
 
         self.study_name = 'Test'
@@ -81,7 +80,6 @@ class TestDesignVar(AbstractJacobianUnittest):
                                       }
         self.repo = 'sostrades_optimization_plugins.sos_processes.test'
         self.proc_name = 'test_sellar_opt_w_design_var'
-
 
         self.ee = ExecutionEngine(self.study_name)
         factory = self.ee.factory
@@ -134,7 +132,7 @@ class TestDesignVar(AbstractJacobianUnittest):
 
         # load and run
         self.ee.load_study_from_input_dict(values_dict)
-        self.values_dict=values_dict
+        self.values_dict = values_dict
 
     def test_01_check_execute(self):
         print("\n Test 1 : check configure and treeview")
@@ -165,8 +163,6 @@ class TestDesignVar(AbstractJacobianUnittest):
                         f'{self.ns}.{self.sc_name}.z',
                         ]
 
-
         self.check_jacobian(local_data=self.values_dict, location=dirname(__file__), filename='jacobian_design_var_bspline.pkl',
                             discipline=disc.discipline_wrapp.discipline, step=1e-15, inputs=input_names,
                             outputs=output_names, derr_approx='complex_step')
-

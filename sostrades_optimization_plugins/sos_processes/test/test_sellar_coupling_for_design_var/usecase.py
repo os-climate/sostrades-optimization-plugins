@@ -29,7 +29,7 @@ class Study(StudyManager):
 
         disc_dict = {}
         # Sellar inputs
-        disc_dict[f'{ns}.{coupling_name}.x'] = pd.DataFrame(data={'index': [0,1,2,3], 'value' : [1., 1., 1., 1.]})
+        disc_dict[f'{ns}.{coupling_name}.x'] = pd.DataFrame(data={'index': [0, 1, 2, 3], 'value': [1., 1., 1., 1.]})
         disc_dict[f'{ns}.{coupling_name}.y_1'] = 1.
         disc_dict[f'{ns}.{coupling_name}.y_2'] = 1.
         disc_dict[f'{ns}.{coupling_name}.z'] = array([5., 2.])

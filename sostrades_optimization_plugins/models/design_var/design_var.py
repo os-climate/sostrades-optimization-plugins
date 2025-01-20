@@ -145,7 +145,7 @@ class DesignVar(object):
         return np.array(final_value), np.array(gradient)
 
     def update_gradient_with_deactivated_elements_first_value(self, initial_gradient):
-        ### TO DO generalize it with other deactivated elements
+        # TO DO generalize it with other deactivated elements
 
         result = np.delete(initial_gradient, 0, axis=1)
         return result

@@ -33,7 +33,6 @@ class GradiantAssetDiscTestCase(AbstractJacobianUnittest):
     """
     np.random.seed(42)
 
-
     def analytic_grad_entry(self):
         return []
 

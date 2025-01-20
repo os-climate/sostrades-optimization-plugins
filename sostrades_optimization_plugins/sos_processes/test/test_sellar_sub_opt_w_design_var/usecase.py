@@ -71,7 +71,6 @@ class Study(StudyManager):
             f'{ns}.Sellar.DesignVar.design_var_descriptor'] = design_var_descriptor
         disc_dict[f'{ns}.Sellar.{self.optim_name}.design_space'] = dspace
 
-
         # Sellar and design var inputs
         disc_dict[f'{ns}.Sellar.SellarOptimScenario.x_in'] = array([1., 1., 1., 1.])
         disc_dict[f'{ns}.Sellar.{self.optim_name}.y_1'] = 5.
