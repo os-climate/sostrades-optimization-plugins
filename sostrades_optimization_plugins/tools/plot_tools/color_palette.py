@@ -24,7 +24,7 @@ import plotly.graph_objs as go
 import plotly.io as pio
 from plotly.colors import find_intermediate_color, make_colorscale
 
-from climateeconomics.core.tools.color_tools import (
+from sostrades_optimization_plugins.tools.plot_tools.color_tools import (
     CSS3_NAMES_TO_HEX,
     adjust_color_brightness,
     adjust_color_intensity,
