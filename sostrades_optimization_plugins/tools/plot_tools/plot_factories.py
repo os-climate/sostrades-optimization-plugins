@@ -17,6 +17,7 @@ limitations under the License.
 from __future__ import annotations
 
 import pandas as pd
+from climateeconomics.core.tools.post_proc import get_scenario_value
 from energy_models.glossaryenergy import GlossaryEnergy
 from plotly import graph_objects as go
 from sostrades_core.tools.post_processing.charts.two_axes_instanciated_chart import (
@@ -24,11 +25,12 @@ from sostrades_core.tools.post_processing.charts.two_axes_instanciated_chart imp
 )
 
 from sostrades_optimization_plugins.tools.plot_tools.color_map import ColorMap
-from sostrades_optimization_plugins.tools.plot_tools.colormaps import available_colormaps
+from sostrades_optimization_plugins.tools.plot_tools.colormaps import (
+    available_colormaps,
+)
 from sostrades_optimization_plugins.tools.plot_tools.plotting import (
     TwoAxesInstanciatedChart,
 )
-from climateeconomics.core.tools.post_proc import get_scenario_value
 
 
 def create_sankey_diagram_at_year(
@@ -307,9 +309,8 @@ def create_slider_figure(figures_dict, method="frames"):
             frame = go.Frame(data=figure.data, name=str(key))
             frames.append(frame)
 
-            # Add data to base figure (hidden initially)
-            for trace in figure.data:
-                data.append(trace)
+            # Extend data list with figure traces
+            data.extend(figure.data)
 
         # Create slider
         sliders = [
