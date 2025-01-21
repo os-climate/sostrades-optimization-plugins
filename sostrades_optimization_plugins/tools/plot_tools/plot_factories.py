@@ -301,7 +301,7 @@ def create_slider_figure(figures_dict, method="frames"):
         data = []
 
         # Create base figure from first plot
-        first_key = list(figures_dict.keys())[0]
+        first_key = next(iter(figures_dict.keys()))
         fig = figures_dict[first_key]
 
         # Create frames for each figure
@@ -314,25 +314,25 @@ def create_slider_figure(figures_dict, method="frames"):
 
         # Create slider
         sliders = [
-            dict(
-                steps=[
-                    dict(
-                        method="animate",
-                        args=[
+            {
+                "steps": [
+                    {
+                        "method": "animate",
+                        "args": [
                             [str(key)],
-                            dict(
-                                mode="immediate",
-                                frame=dict(duration=0, redraw=True),
-                                transition=dict(duration=0),
-                            ),
+                            {
+                                "mode": "immediate",
+                                "frame": {"duration": 0, "redraw": True},
+                                "transition": {"duration": 0},
+                            },
                         ],
-                        label=str(key),
-                    )
-                    for key in figures_dict.keys()
+                        "label": str(key),
+                    }
+                    for key in figures_dict
                 ],
-                currentvalue=dict(visible=True, prefix="Selection: "),
-                pad=dict(t=50),
-            )
+                "currentvalue": {"visible": True, "prefix": "Selection: "},
+                "pad": {"t": 50},
+            }
         ]
 
         # Update layout
@@ -354,11 +354,11 @@ def create_slider_figure(figures_dict, method="frames"):
         # Create slider
         steps = []
         for i, key in enumerate(figures_dict.keys()):
-            step = dict(
-                method="update",
-                args=[{"visible": [False] * len(fig.data)}],
-                label=str(key),
-            )
+            step = {
+                "method": "update",
+                "args": [{"visible": [False] * len(fig.data)}],
+                "label": str(key),
+            }
             # Make traces for current figure visible
             start_idx = i * len(list(figures_dict.values())[0].data)
             end_idx = start_idx + len(list(figures_dict.values())[0].data)
@@ -367,12 +367,12 @@ def create_slider_figure(figures_dict, method="frames"):
             steps.append(step)
 
         sliders = [
-            dict(
-                active=0,
-                currentvalue=dict(visible=True, prefix="Selection: "),
-                pad=dict(t=50),
-                steps=steps,
-            )
+            {
+                "active": 0,
+                "currentvalue": {"visible": True, "prefix": "Selection: "},
+                "pad": {"t": 50},
+                "steps": steps,
+            }
         ]
 
         fig.update_layout(sliders=sliders)
@@ -389,9 +389,9 @@ def create_slider_figure(figures_dict, method="frames"):
         # Create slider
         steps = []
         for i, key in enumerate(figures_dict.keys()):
-            step = dict(
-                method="update",
-                args=[
+            step = {
+                "method": "update",
+                "args": [
                     {
                         "visible": [
                             True if i == j else False for j in range(len(figures_dict))
@@ -399,17 +399,17 @@ def create_slider_figure(figures_dict, method="frames"):
                     },
                     {"title": f"Selection: {key}"},  # Update title as example
                 ],
-                label=str(key),
-            )
+                "label": str(key),
+            }
             steps.append(step)
 
         sliders = [
-            dict(
-                active=0,
-                currentvalue=dict(visible=True, prefix="Selection: "),
-                pad=dict(t=50),
-                steps=steps,
-            )
+            {
+                "active": 0,
+                "currentvalue": {"visible": True, "prefix": "Selection: "},
+                "pad": {"t": 50},
+                "steps": steps,
+            }
         ]
 
         fig.update_layout(sliders=sliders)
