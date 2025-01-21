@@ -77,14 +77,17 @@ class ColorMap:
             return {text: self.get_color(text) for text in text_list}
         return [self.get_color(text) for text in text_list]
 
-    def get_color(self, text: str) -> str:
-        """Get color from text, based on mapping and additional mapping.
+    def get_color(self, text: str, exact_search: bool = False) -> str:
+        """
+        Get color from text, based on mapping and additional mapping.
 
         Args:
             text (str): Text to be used to find the color.
+            exact_search (bool): Wheter to do an exact search of the text
 
         Returns:
             str: color
+
         """
         text = text.lower().strip()
 
@@ -94,7 +97,10 @@ class ColorMap:
 
         # Check if the resource is in the original mapping or additional mapping
         for resource, color in {**self.base_mapping, **self.additional_mapping}.items():
-            if resource in text:
+            if exact_search:
+                if resource.lower().strip() == text:
+                    return color
+            elif resource.lower().strip() in text:
                 return color
 
         # If no matching resource found, generate a random color
