@@ -37,6 +37,7 @@ EnergyColorMap: ColorMap = ColorMap(
         "geothermal power": "#9932cc",  # dark orchid
         "tidal power": "#008080",  # teal
         "wave power": "#20b2aa",  # light sea green
+        "gas": "#87ceeb",  # sky blue
     },
 )
 
@@ -120,10 +121,27 @@ WaterColorMap: ColorMap = ColorMap(
 
 SectorsColorMap: ColorMap = ColorMap(
     name="sectors",
-    color_map={"Industry": "#000000", "Services": "#1696D2", "Agriculture": "#55B748"}
+    color_map={"Industry": "#000000", "Services": "#1696D2", "Agriculture": "#55B748"},
 )
 
-FullColorMap: ColorMap = EnergyColorMap | ResourcesColorMap | SectorsColorMap | WaterColorMap
+EmissionsColorMap: ColorMap = ColorMap(
+    name="emissions",
+    color_map={
+        "Scope 1": "#1696D2",
+        "Scope 1 Emissions": "#1696D2",
+        "Scope 2": "#FDBF11",
+        "Scope 2 Emissions": "#FDBF11",
+        "Total Emissions": "#DB2B27",
+    },
+)
+
+FullColorMap: ColorMap = (
+    EnergyColorMap
+    | ResourcesColorMap
+    | SectorsColorMap
+    | WaterColorMap
+    | EmissionsColorMap
+)
 
 available_colormaps: dict = {
     "energy": EnergyColorMap,
@@ -131,4 +149,5 @@ available_colormaps: dict = {
     "sectors": SectorsColorMap,
     "full": FullColorMap,
     "water": WaterColorMap,
+    "emissions": EmissionsColorMap,
 }
