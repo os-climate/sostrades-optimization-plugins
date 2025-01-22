@@ -822,3 +822,16 @@ class DifferentiableModel:
             f"{df_outputname}:{colname}"
             for colname in self.dataframes_outputs_colnames[df_outputname]
         ]
+
+    def get_colnames_output_dataframe(self, df_name: str, expect_years: bool = False, full_path: bool = False):
+        columns_names = list(filter(lambda key: key.startswith(f'{df_name}:'), self.outputs.keys()))
+        if expect_years:
+            columns_names.remove(f'{df_name}:years')
+        if not full_path:
+            columns_names = [col.replace(f'{df_name}:', '') for col in columns_names]
+        return columns_names
+
+    def get_cols_output_dataframe(self, df_name: str, expect_years: bool = False):
+        columns_names = self.get_colnames_output_dataframe(df_name=df_name, expect_years=expect_years, full_path=True)
+        columns = [self.outputs[col] for col in columns_names]
+        return columns
