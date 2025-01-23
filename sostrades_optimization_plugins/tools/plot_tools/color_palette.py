@@ -588,7 +588,7 @@ class ColorPalette:
 
         Example:
             >>> cm = ColorPalette.from_preset(preset_name="witness")
-            >>> fig = cm.visualize_palette()
+            >>> fig = cm.visualize_palette(show=False)
         """
         fig = go.Figure()
 
@@ -693,7 +693,7 @@ class ColorPalette:
 
         Example:
             >>> cm = ColorPalette.from_preset(preset_name="witness")
-            >>> fig = cm.visualize_groups()
+            >>> fig = cm.visualize_groups(show=False)
         """
         if not self.predefined_groups:
             return None
