@@ -48,7 +48,7 @@ def set_default_palette(
     """Set default palette to new value.
 
     Example:
-        >>> from climateeconomics.core.tools.color_palette import ColorPalette
+        >>> from sostrades_optimization_plugins.tools.plot_tools.color_palette import ColorPalette
         >>> palette = set_default_palette(ColorPalette(name="witness"))
         >>> palette.name
         'witness'
