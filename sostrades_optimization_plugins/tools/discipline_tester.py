@@ -65,19 +65,18 @@ def discipline_test_function(module_path: str, name: str, model_name: str,
 
     # Retrieve discipline for post-processing
     disc = ee.dm.get_disciplines_with_name(f'{name}.{model_name}')[0]
-    filter = disc.get_chart_filter_list()
-    graph_list = disc.get_post_processing_list(filter)
+    filters = disc.get_chart_filter_list()
+    graph_list = disc.get_post_processing_list(filters)
+    # Show generated graphs
+    if show_graphs:
+        for graph in graph_list:
+            graph.to_plotly().show()
 
     wrap_disc = disc.discipline_wrapp.wrapper
     if not coupling_inputs and not coupling_outputs:
         if isinstance(wrap_disc, AutodifferentiedDisc) and wrap_disc.autoconfigure_gradient_variables:
             wrap_disc._auto_configure_jacobian_variables()
             coupling_inputs, coupling_outputs = wrap_disc.coupling_inputs, wrap_disc.coupling_outputs
-
-    # Show generated graphs
-    if show_graphs:
-        for graph in graph_list:
-            graph.to_plotly().show()
 
     # Perform Jacobian test if required
     if jacobian_test:
