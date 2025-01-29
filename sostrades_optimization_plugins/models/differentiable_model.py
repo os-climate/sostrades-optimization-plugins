@@ -101,11 +101,23 @@ class DifferentiableModel:
 
         self._params = {}
         self._output_types = {}
+        self.temp_variables = {}
 
         self.flatten_dfs = flatten_dfs
 
         # Default methods
         self.compute_partial = self.compute_partial_bwd
+
+    def _reset_outputs(self):
+        self.outputs = {}
+        self.temp_variables = {}
+        self._output_types = {}
+        self.dataframes_outputs_colnames: dict[str: list[str]] = {}
+        self.dataframes_inputs_colnames: dict[str: list[str]] = {}
+
+    def _reset(self):
+        self._reset_outputs()
+        self.inputs = {}
 
     @property
     def parameters(self) -> dict[str, float, np.ndarray, dict]:
@@ -156,6 +168,7 @@ class DifferentiableModel:
             ValueError: If an input array has more than 2 dimensions.
 
         """
+        self._reset()
         inputs = {}
 
         self.dataframes_inputs_colnames = {}
@@ -248,17 +261,27 @@ class DifferentiableModel:
         if self.flatten_dfs:
             prefix = f"{name}:"
             columns = {}
-            for key, value in source.items():
-                if key.startswith(prefix) and isinstance(value, np.ndarray):
-                    col_name = key[
-                        len(prefix) :
-                    ]  # Remove the prefix to get column name
-                    columns[col_name] = value
+            columns_in_sources = list(map(lambda x: x[0], list(filter(lambda item: item[0].startswith(prefix) and isinstance(item[1], np.ndarray), source.items()))))
+            for col_with_prefix in columns_in_sources:
+                col_name = col_with_prefix[len(prefix) :]  # Remove the prefix to get column name
+                columns[col_name] = source[col_with_prefix]
 
             if columns:  # Only create DataFrame if we found matching columns
                 return pd.DataFrame(columns)
+            else:
+                a = 1
 
         return None
+
+    def get_base_name(self, get_from: str = "outputs"):
+        if get_from == "inputs":
+            source = self.inputs
+        elif get_from == "outputs":
+            source = self.outputs
+        else:
+            source = self.outputs
+
+        return {key.split(":", 1)[0] for key in source if ":" in key}
 
     def get_dataframes(self, get_from: str = "outputs") -> dict[str, pd.DataFrame]:
         """Convert all suitable outputs or inputs to pandas DataFrames.
@@ -282,7 +305,7 @@ class DifferentiableModel:
 
         if self.flatten_dfs:
             # Find all unique base names in flattened outputs
-            base_names = {key.split(":", 1)[0] for key in source if ":" in key}
+            base_names = self.get_base_name(get_from=get_from)
             for base_name in base_names:
                 df = self.get_dataframe(base_name)
                 if df is not None:
@@ -309,7 +332,7 @@ class DifferentiableModel:
             source = self.outputs
 
         for key, value in source.items():
-            if ":" not in key and not isinstance(value, dict):
+            if ":" not in key:
                 result[key] = value
 
         return result
@@ -462,6 +485,7 @@ class DifferentiableModel:
 
         else:  # If not, compute the jacobian for each input
             for wrapped_compute, input_name in zip(wrapped_computes, input_names):
+                self._reset_outputs()
                 if isinstance(self.inputs[input_name], dict):  # For DataFrame inputs
                     jacobians = {}
                     argnum_kword = (
@@ -835,3 +859,23 @@ class DifferentiableModel:
         columns_names = self.get_colnames_output_dataframe(df_name=df_name, expect_years=expect_years, full_path=True)
         columns = [self.outputs[col] for col in columns_names]
         return columns
+
+    def get_colnames_input_dataframe(self, df_name: str, expect_years: bool = False, full_path: bool = False):
+        columns_names = list(filter(lambda key: key.startswith(f'{df_name}:'), self.inputs.keys()))
+        if expect_years:
+            columns_names.remove(f'{df_name}:years')
+        if not full_path:
+            columns_names = [col.replace(f'{df_name}:', '') for col in columns_names]
+        return columns_names
+
+    def get_cols_input_dataframe(self, df_name: str, expect_years: bool = False):
+        columns_names = self.get_colnames_input_dataframe(df_name=df_name, expect_years=expect_years, full_path=True)
+        columns = [self.inputs[col] for col in columns_names]
+        return columns
+
+    def sum_cols(self, cols: list[np.ndarray | ArrayLike]) -> ArrayLike:
+        """Summation of list of arrays in a autograd-compatible manner"""
+        sum_result = cols[0] * 0. + 0.
+        for col in cols:
+            sum_result = sum_result + col
+        return sum_result
