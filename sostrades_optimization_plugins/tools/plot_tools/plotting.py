@@ -92,6 +92,8 @@ class ExtendedMixin(Generic[T]):
     color_map: ColorMap = None
     group_name: str = None
     layout_custom_updates: dict = None
+    xaxes_custom_updates: dict = None
+    yaxes_custom_updates: dict = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -171,6 +173,16 @@ class ExtendedMixin(Generic[T]):
         self.layout_custom_updates = layout_updates
         return self
 
+    def set_xaxes_custom_updates(self, xaxes_updates: dict) -> T:
+        """Set layout custom updates."""
+        self.xaxes_custom_updates = xaxes_updates
+        return self
+
+    def set_yaxes_custom_updates(self, yaxes_updates: dict) -> T:
+        """Set layout custom updates."""
+        self.yaxes_custom_updates = yaxes_updates
+        return self
+
     def to_plotly(self, logger=None) -> go.Figure:
         """Convert to plotly figure."""
         fig: go.Figure = super().to_plotly(logger=logger)
@@ -219,6 +231,12 @@ class ExtendedMixin(Generic[T]):
         # Update layout with custom layout updates
         if self.layout_custom_updates:
             fig.update_layout(**self.layout_custom_updates)
+
+        if self.xaxes_custom_updates:
+            fig.update_xaxes(**self.xaxes_custom_updates)
+
+        if self.yaxes_custom_updates:
+            fig.update_yaxes(**self.yaxes_custom_updates)
 
         return fig
 
