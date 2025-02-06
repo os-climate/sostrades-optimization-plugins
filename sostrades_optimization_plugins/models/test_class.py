@@ -54,7 +54,7 @@ class GenericDisciplinesTestClass(unittest.TestCase):
             pickle_name=f'{self.pickle_prefix}_{self.model_name}.pkl',
             override_dump_jacobian=self.override_dump_jacobian
         )
-        
+
     def get_inputs_dict(self) -> dict:
         raise NotImplementedError("Must be overloaded")
 
