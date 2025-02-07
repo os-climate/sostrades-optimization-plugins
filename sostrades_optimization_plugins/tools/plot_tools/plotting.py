@@ -88,12 +88,12 @@ T = TypeVar("T", bound="ExtendedMixin")
 
 # Mixin class with common additional methods
 class ExtendedMixin(Generic[T]):
-    color_palette: ColorPalette = None
-    color_map: ColorMap = None
-    group_name: str = None
-    layout_custom_updates: dict = None
-    xaxes_custom_updates: dict = None
-    yaxes_custom_updates: dict = None
+    color_palette: ColorPalette | None = None
+    color_map: ColorMap | None = None
+    group_name: str | None = None
+    layout_custom_updates: dict | None = None
+    xaxes_custom_updates: dict | None = None
+    yaxes_custom_updates: dict | None = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

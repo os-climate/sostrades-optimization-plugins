@@ -54,7 +54,6 @@ class Study(StudyManager):
 
         disc_dict = {}
         # Optim inputs
-        disc_dict[f'{ns}.{self.optim_name}.max_iter'] = 500
         disc_dict[f'{ns}.{self.optim_name}.algo'] = "SLSQP"
         disc_dict[f'{ns}.{self.optim_name}.design_space'] = dspace
         # TODO: what's wrong with IDF
