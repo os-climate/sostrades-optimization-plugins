@@ -117,3 +117,8 @@ class AutodifferentiedDisc(SoSWrapp):
         for varname, vardescr in all_outputs_dict.items():
             if self.GRADIENTS in vardescr and vardescr[self.GRADIENTS]:
                 self.coupling_outputs.append(varname)
+
+    def pimp_string(self, val: str):
+        val = val.replace("_", ' ')
+        val = val.capitalize()
+        return val
