@@ -196,6 +196,10 @@ class DifferentiableModel:
 
         self.inputs = inputs
 
+    def set_output(self, key: str, value) -> None:
+        """Set the output key with value."""
+        self.outputs[key] = value
+
     def set_output_types(self, output_types: dict[str, str]) -> None:
         """Set the types of the output variables.
 
