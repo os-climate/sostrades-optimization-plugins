@@ -106,6 +106,9 @@ class DifferentiableModel:
 
         self.flatten_dfs = flatten_dfs
 
+        # Internal variables
+        self._for_grad: bool = False
+
         # Default methods
         self.compute_partial = self.compute_partial_bwd
 
@@ -359,31 +362,31 @@ class DifferentiableModel:
             return pd.DataFrame(source[name])
 
         # If using flatten_dfs, check for columns with this base name
-        if self.flatten_dfs:
-            prefix = f"{name}:"
-            columns = {}
-            columns_in_sources = list(
-                map(
-                    lambda x: x[0],
-                    list(
-                        filter(
-                            lambda item: item[0].startswith(prefix)
-                            and isinstance(item[1], np.ndarray),
-                            source.items(),
-                        )
-                    ),
-                )
+        # if self.flatten_dfs:
+        prefix = f"{name}:"
+        columns = {}
+        columns_in_sources = list(
+            map(
+                lambda x: x[0],
+                list(
+                    filter(
+                        lambda item: item[0].startswith(prefix)
+                        and isinstance(item[1], np.ndarray),
+                        source.items(),
+                    )
+                ),
             )
-            for col_with_prefix in columns_in_sources:
-                col_name = col_with_prefix[
-                    len(prefix) :
-                ]  # Remove the prefix to get column name
-                columns[col_name] = source[col_with_prefix]
+        )
+        for col_with_prefix in columns_in_sources:
+            col_name = col_with_prefix[
+                len(prefix) :
+            ]  # Remove the prefix to get column name
+            columns[col_name] = source[col_with_prefix]
 
-            if columns:  # Only create DataFrame if we found matching columns
-                return pd.DataFrame(columns)
-            else:
-                a = 1
+        if columns:  # Only create DataFrame if we found matching columns
+            return pd.DataFrame(columns)
+        else:
+            a = 1
 
         return None
 
@@ -517,7 +520,9 @@ class DifferentiableModel:
             def wrapped_compute(args: InputType) -> OutputType:
                 temp_inputs = deepcopy(self.inputs)
                 self.inputs = args
+                self._for_grad = True
                 self.compute()
+                self._for_grad = False
                 self.inputs = temp_inputs
                 return self.outputs[output_name]
 
@@ -536,7 +541,9 @@ class DifferentiableModel:
                         temp_inputs = deepcopy(self.inputs)
                         for i, col in enumerate(self.inputs[input_name].keys()):
                             self.inputs[input_name][col] = args[i]
+                        self._for_grad = True
                         self.compute()
+                        self._for_grad = False
                         self.inputs = temp_inputs
                         return self.outputs[output_name]
                 else:
@@ -547,7 +554,9 @@ class DifferentiableModel:
                     ) -> OutputType:
                         temp_inputs = deepcopy(self.inputs)
                         self.inputs[input_name] = arg
+                        self._for_grad = True
                         self.compute()
+                        self._for_grad = False
                         self.inputs = temp_inputs
                         return self.outputs[output_name]
 
