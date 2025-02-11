@@ -964,6 +964,18 @@ class DifferentiableModel:
     def get_colnames_output_dataframe(
         self, df_name: str, expect_years: bool = False, full_path: bool = False
     ):
+        """Retrieves column names for a specific output DataFrame.
+
+        Args:
+            df_name (str): Name of the DataFrame.
+            expect_years (bool): If True, excludes the 'years' column from the result.
+                Defaults to False.
+            full_path (bool): If True, returns full column paths including DataFrame name.
+                Defaults to False.
+
+        Returns:
+            list[str]: List of column names or full column paths.
+        """
         columns_names = list(
             filter(lambda key: key.startswith(f"{df_name}:"), self.outputs.keys())
         )
@@ -974,6 +986,17 @@ class DifferentiableModel:
         return columns_names
 
     def get_cols_output_dataframe(self, df_name: str, expect_years: bool = False):
+        """
+        Retrieve column values for a specific output DataFrame.
+
+        Args:
+            df_name (str): Name of the DataFrame.
+            expect_years (bool): If True, excludes the 'years' column from the result.
+                Defaults to False.
+
+        Returns:
+            list[np.ndarray]: List of column values as numpy arrays.
+        """
         columns_names = self.get_colnames_output_dataframe(
             df_name=df_name, expect_years=expect_years, full_path=True
         )
@@ -1000,7 +1023,19 @@ class DifferentiableModel:
         return columns
 
     def sum_cols(self, cols: list[np.ndarray | ArrayLike]) -> ArrayLike:
-        """Summation of list of arrays in a autograd-compatible manner"""
+        """
+        Perform summation of arrays in an autograd-compatible manner.
+
+        Args:
+            cols (list[np.ndarray | ArrayLike]): List of arrays to sum.
+
+        Returns:
+            ArrayLike: Sum of all input arrays.
+
+        Note:
+            This method ensures compatibility with automatic differentiation by avoiding
+            direct numpy sum operations.
+        """
         sum_result = cols[0] * 0.0 + 0.0
         for col in cols:
             sum_result = sum_result + col
