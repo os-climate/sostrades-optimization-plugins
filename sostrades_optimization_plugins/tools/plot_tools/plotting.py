@@ -94,6 +94,7 @@ class ExtendedMixin(Generic[T]):
     layout_custom_updates: dict | None = None
     xaxes_custom_updates: dict | None = None
     yaxes_custom_updates: dict | None = None
+    subtitle: str | None = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -191,7 +192,7 @@ class ExtendedMixin(Generic[T]):
         if self.color_palette is not None:
             # Check if color palette has enough colors to plot all the traces
             if len(self.color_palette.main_colors) < len(fig.data):
-                msg = "Palette does not have enough colors for plotting all the data."
+                msg = f"Palette ({self.color_palette.name}) does not have enough colors for plotting all the data."
                 raise ValueError(msg)
 
             fig.update_layout(colorway=self.color_palette.main_colors)
@@ -228,6 +229,20 @@ class ExtendedMixin(Generic[T]):
         fig.update_layout(xaxis={"showgrid": False})
         fig.update_yaxes(rangemode="tozero")
 
+        # Make ticks larger
+        fig.update_layout(
+            xaxis=dict(
+                tickfont=dict(
+                    size=12  # Size for x-axis tick labels
+                )
+            ),
+            yaxis=dict(
+                tickfont=dict(
+                    size=12  # Size for y-axis tick labels
+                )
+            ),
+        )
+
         # Update layout with custom layout updates
         if self.layout_custom_updates:
             fig.update_layout(**self.layout_custom_updates)
@@ -240,6 +255,51 @@ class ExtendedMixin(Generic[T]):
 
         return fig
 
+    def get_default_title_layout(self, title_name="", pos_x=0.1, pos_y=0.9):
+        """Generate plotly layout dict for title
+        :params: title_name : title of chart
+        :type: str
+        :params: pos_x : position of title on x axis
+        :type: float
+        :params: pos_y : position of title on y axis
+        :type: float
+
+        :return: title_dict : dict that contains plotly layout for the title
+        :type: dict
+        """
+
+        # Make titles look nicer
+        subtitle_text = (
+            f"<br><span style='font-size: 12px'>{self.subtitle}</span>"
+            if self.subtitle is not None
+            else ""
+        )
+        title_dict = {
+            "text": f"<b>{title_name}</b>{subtitle_text}",
+            "x": pos_x,  # 0 means left alignment (0 to 1 scale)
+            "y": pos_y,
+            "xanchor": "left",
+            "yanchor": "top",
+            "font": {
+                "size": 18,  # Main title size
+            },
+        }
+
+        return title_dict
+
+    def get_default_font_layout(self):
+        """Generate plotly layout dict for font
+
+        :return: font_dict : dict that contains plotly layout for the font
+        :type: dict
+        """
+        font_dict = {
+            "family": 'Roboto, "Open Sans", "Helvetica Neue", Arial, sans-serif',
+            "size": 10,
+            "color": '#333333',
+        }
+        return font_dict
+
 
 class WITNESSTwoAxesInstanciatedChart(
     ExtendedMixin["WITNESSTwoAxesInstanciatedChart"], BaseTwoAxesInstanciatedChart
@@ -248,7 +308,8 @@ class WITNESSTwoAxesInstanciatedChart(
 
 
 class WITNESSInstantiatedPlotlyNativeChart(
-    ExtendedMixin["WITNESSInstantiatedPlotlyNativeChart"], BaseInstantiatedPlotlyNativeChart
+    ExtendedMixin["WITNESSInstantiatedPlotlyNativeChart"],
+    BaseInstantiatedPlotlyNativeChart,
 ):
     pass
 
