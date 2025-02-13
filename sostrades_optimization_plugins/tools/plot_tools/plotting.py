@@ -174,14 +174,77 @@ class ExtendedMixin(Generic[T]):
         self.layout_custom_updates = layout_updates
         return self
 
+    def add_layout_custom_updates(self, layout_updates: dict) -> T:
+        """Set layout custom updates."""
+        if self.layout_custom_updates is None:
+            self.layout_custom_updates = {}
+        self.layout_custom_updates.update(layout_updates)
+        return self
+
     def set_xaxes_custom_updates(self, xaxes_updates: dict) -> T:
         """Set layout custom updates."""
         self.xaxes_custom_updates = xaxes_updates
         return self
 
+    def add_xaxes_custom_updates(self, xaxes_updates: dict) -> T:
+        """Update layout custom updates."""
+        if self.xaxes_custom_updates is None:
+            self.xaxes_custom_updates = {}
+        self.xaxes_custom_updates.update(xaxes_updates)
+        return self
+
     def set_yaxes_custom_updates(self, yaxes_updates: dict) -> T:
         """Set layout custom updates."""
         self.yaxes_custom_updates = yaxes_updates
+        return self
+
+    def add_yaxes_custom_updates(self, yaxes_updates: dict) -> T:
+        """Update layout custom updates."""
+        if self.yaxes_custom_updates is None:
+            self.yaxes_custom_updates = {}
+        self.yaxes_custom_updates.update(yaxes_updates)
+        return self
+
+    def add_rangeslider(self, options: dict | None = None) -> T:
+        """Add a x-axis rangeslider to the plot."""
+
+        if options is None:
+            options = {
+                "rangeslider_visible": True,
+                "rangeselector": {
+                    "buttons": [
+                        {
+                            "count": 1,
+                            "label": "1m",
+                            "step": "month",
+                            "stepmode": "backward",
+                        },
+                        {
+                            "count": 6,
+                            "label": "6m",
+                            "step": "month",
+                            "stepmode": "backward",
+                        },
+                        {
+                            "count": 1,
+                            "label": "YTD",
+                            "step": "year",
+                            "stepmode": "todate",
+                        },
+                        {
+                            "count": 1,
+                            "label": "1y",
+                            "step": "year",
+                            "stepmode": "backward",
+                        },
+                        {"step": "all"},
+                    ]
+                },
+                "type": "date",
+                "tickformat": "%b %d",
+            }
+
+        self.add_xaxes_custom_updates(options)
         return self
 
     def to_plotly(self, logger=None) -> go.Figure:
@@ -231,16 +294,16 @@ class ExtendedMixin(Generic[T]):
 
         # Make ticks larger
         fig.update_layout(
-            xaxis=dict(
-                tickfont=dict(
-                    size=12  # Size for x-axis tick labels
-                )
-            ),
-            yaxis=dict(
-                tickfont=dict(
-                    size=12  # Size for y-axis tick labels
-                )
-            ),
+            xaxis={
+                "tickfont": {
+                    "size": 12,  # Size for x-axis tick labels
+                },
+            },
+            yaxis={
+                "tickfont": {
+                    "size": 12,  # Size for y-axis tick labels
+                },
+            },
         )
 
         # Update layout with custom layout updates
@@ -296,7 +359,7 @@ class ExtendedMixin(Generic[T]):
         font_dict = {
             "family": 'Roboto, "Open Sans", "Helvetica Neue", Arial, sans-serif',
             "size": 10,
-            "color": '#333333',
+            "color": "#333333",
         }
         return font_dict
 
