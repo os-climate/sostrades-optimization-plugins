@@ -241,7 +241,6 @@ class ExtendedMixin(Generic[T]):
                     ]
                 },
                 "type": "date",
-                "tickformat": "%b %d",
             }
 
         self.add_xaxes_custom_updates(options)
@@ -319,18 +318,18 @@ class ExtendedMixin(Generic[T]):
         return fig
 
     def get_default_title_layout(self, title_name="", pos_x=0.1, pos_y=0.9):
-        """Generate plotly layout dict for title
-        :params: title_name : title of chart
-        :type: str
-        :params: pos_x : position of title on x axis
-        :type: float
-        :params: pos_y : position of title on y axis
-        :type: float
-
-        :return: title_dict : dict that contains plotly layout for the title
-        :type: dict
         """
+        Generate a plotly layout dictionary for title configuration.
 
+        Args:
+            title_name (str): Title of the chart.
+            pos_x (float): Position of title on x axis.
+            pos_y (float): Position of title on y axis.
+
+        Returns:
+            dict: Dictionary containing plotly layout configuration for the title.
+
+        """
         # Make titles look nicer
         subtitle_text = (
             f"<br><span style='font-size: 12px'>{self.subtitle}</span>"
