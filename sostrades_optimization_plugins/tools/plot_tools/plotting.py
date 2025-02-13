@@ -281,7 +281,7 @@ class ExtendedMixin(Generic[T]):
             "xanchor": "left",
             "yanchor": "top",
             "font": {
-                "size": 18,  # Main title size
+                "size": 16,  # Main title size
             },
         }
 
