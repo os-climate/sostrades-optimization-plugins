@@ -285,9 +285,9 @@ class DifferentiableModel:
             elif isinstance(value, pd.Series):
                 processed_inputs[key] = value.to_numpy()
 
-            elif isinstance(value, (list, np.ndarray)):
-                if len(np.array(value).shape) > 2:
-                    msg = f"Input '{current_key}' has too many dimensions; only 1D or 2D arrays allowed."
+            elif isinstance(value, np.ndarray):
+                if len(value.shape) > 2:
+                    msg = f"Input '{key}' has too many dimensions; only 1D or 2D arrays allowed."
                     raise ValueError(msg)
                 processed_inputs[key] = np.array(value)
 
@@ -385,8 +385,6 @@ class DifferentiableModel:
 
         if columns:  # Only create DataFrame if we found matching columns
             return pd.DataFrame(columns)
-        else:
-            a = 1
 
         return None
 
@@ -985,11 +983,10 @@ class DifferentiableModel:
         Returns:
             list[str]: List of column names or full column paths.
         """
-        columns_names = list(
-            filter(lambda key: key.startswith(f"{df_name}:"), self.outputs.keys())
-        )
-        if expect_years:
-            columns_names.remove(f"{df_name}:years")
+        columns_names = list(filter(lambda key: key.startswith(f'{df_name}:'), self.outputs.keys()))
+        if expect_years and f'{df_name}:years' in columns_names:
+            columns_names.remove(f'{df_name}:years')
+
         if not full_path:
             columns_names = [col.replace(f"{df_name}:", "") for col in columns_names]
         return columns_names
@@ -1015,11 +1012,9 @@ class DifferentiableModel:
     def get_colnames_input_dataframe(
         self, df_name: str, expect_years: bool = False, full_path: bool = False
     ):
-        columns_names = list(
-            filter(lambda key: key.startswith(f"{df_name}:"), self.inputs.keys())
-        )
-        if expect_years:
-            columns_names.remove(f"{df_name}:years")
+        columns_names = list(filter(lambda key: key.startswith(f'{df_name}:'), self.inputs.keys()))
+        if expect_years and f'{df_name}:years' in columns_names:
+            columns_names.remove(f'{df_name}:years')
         if not full_path:
             columns_names = [col.replace(f"{df_name}:", "") for col in columns_names]
         return columns_names
@@ -1050,6 +1045,7 @@ class DifferentiableModel:
             sum_result = sum_result + col
         return sum_result
 
+
     @staticmethod
     def _df_to_dict(df: pd.DataFrame, parent_name: str = None) -> dict:
         """Convert a dataframe into a dictionary of numpy arrays.
@@ -1068,3 +1064,44 @@ class DifferentiableModel:
         if parent_name is not None:
             return {f"{parent_name}:{col}": df[col].to_numpy() for col in df.columns}
         return {col: df[col].to_numpy() for col in df.columns}
+    def cons_smooth_maximum_vect(self, value, alpha=1E16):
+        """
+        Conservative smooth maximum function.
+        This modified version of the smooth_max adds an epsilon value to the smoothed value
+        in order to have a conservative value (always smooth_value > max(values))
+        """
+        cst_array = self.np.array(value)
+        max_exp = 650  # max value for exponent input, higher value gives infinity
+        min_exp = -300
+        max_alphax = self.np.amax(alpha * cst_array, axis=1)
+
+        k = max_alphax - max_exp
+        # Deal with underflow . max with exp(-300)
+        exp_func = self.np.maximum(min_exp, alpha * cst_array -
+                                         self.np.repeat(k, cst_array.shape[1]).reshape(cst_array.shape))
+        den = self.np.sum(self.np.exp(exp_func), axis=1)
+        num = self.np.sum(cst_array * self.np.exp(exp_func), axis=1)
+        result = num / den + 0.3 / alpha
+        """
+        result = self.np.where(den != 0, num / den + 0.3 / alpha, self.np.amax(cst_array, axis=1))
+        if (den == 0).any():
+            print('Warning in smooth_maximum! den equals 0, hard max is used')
+        """
+
+        return result
+    def cons_smooth_minimum_vect(self, value):
+        """Conservative smooth minimum function"""
+        return - self.cons_smooth_maximum_vect(- value)
+
+    def pseudo_max(self, value1: np.ndarray, value2: Union[np.ndarray, float]):
+        """pseudo-max function"""
+        if isinstance(value2, float):
+            value2 = self.np.ones_like(value1) * value2
+
+        array_for_pseudo_max = self.np.array([value1, value2]).T
+        result = self.cons_smooth_maximum_vect(array_for_pseudo_max)
+        return result
+
+    def pseudo_min(self, value1: np.ndarray, value2: Union[np.ndarray, float]):
+        """pseudo-min function"""
+        return - self.pseudo_max(- value1, - value2)
