@@ -1,6 +1,5 @@
 '''
-Copyright 2025/02/06 Capgemini
-Modifications on 2023/06/14-2024/06/24 Copyright 2023 Capgemini
+Copyright 2025/02/17 Capgemini
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
