@@ -36,6 +36,18 @@ class AutodifferentiedDisc(SoSWrapp):
         super().__init__(sos_name, logger)
         self.model: Union[DifferentiableModel, None] = None
 
+    def collect_var_for_dynamic_setup(self, variable_names: Union[str, list[str]]):
+        """easy method for setup sos dynamic variable gathering"""
+        values_dict = {}
+        if isinstance(variable_names, str):
+            variable_names = [variable_names]
+        go = set(self.get_data_in().keys()).issuperset(variable_names)
+        if go:
+            values_dict = {vn: self.get_sosdisc_inputs(vn) for vn in variable_names}
+            go = not any(val is None for val in values_dict.values())
+
+        return values_dict, go
+
     def run(self):
 
         # todo : remove filtration later when we will be able to collect only non-numerical inputs
@@ -105,3 +117,8 @@ class AutodifferentiedDisc(SoSWrapp):
         for varname, vardescr in all_outputs_dict.items():
             if self.GRADIENTS in vardescr and vardescr[self.GRADIENTS]:
                 self.coupling_outputs.append(varname)
+
+    def pimp_string(self, val: str):
+        val = val.replace("_", ' ')
+        val = val.capitalize()
+        return val

@@ -57,6 +57,24 @@ class TestComplexDifferentiableModel(unittest.TestCase):
         np.testing.assert_array_equal(self.model.inputs["df:a"], np.array([1, 2, 3]))
         np.testing.assert_array_equal(self.model.inputs["df:b"], np.array([4, 5, 6]))
 
+    def test_set_inputs_with_dict_of_dataframe(self):
+        df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+        self.model.set_inputs({"dict": {"df1": df, "df2": df}, "df0": df})
+
+        self._assert_dict_almost_equal(
+            self.model.inputs,
+            {
+                "dict": {
+                    "df1:a": np.array([1, 2, 3]),
+                    "df1:b": np.array([4, 5, 6]),
+                    "df2:a": np.array([1, 2, 3]),
+                    "df2:b": np.array([4, 5, 6]),
+                },
+                "df0:a": np.array([1, 2, 3]),
+                "df0:b": np.array([4, 5, 6]),
+            },
+        )
+
     def test_compute(self):
         self.model.compute()
         x, y, z = self.inputs["x"], self.inputs["y"], self.inputs["z"]
@@ -142,8 +160,33 @@ class TestComplexDifferentiableModel(unittest.TestCase):
         np.testing.assert_almost_equal(partials["y"], expected_partial_y)
         np.testing.assert_almost_equal(partials["z"], expected_partial_z)
 
+    def _assert_dict_almost_equal(self, dict1, dict2, rtol=1e-5, atol=1e-8):
+        """Custom assertion for comparing dictionaries with numpy arrays and floats"""
+        # Check keys match
+        self.assertEqual(dict1.keys(), dict2.keys())
+
+        for key in dict1:
+            if isinstance(dict1[key], dict):
+                # Recursive call for nested dictionaries
+                self._assert_dict_almost_equal(
+                    dict1[key], dict2[key], rtol=rtol, atol=atol
+                )
+            elif isinstance(dict1[key], np.ndarray):
+                # Use numpy's allclose for arrays
+                self.assertTrue(
+                    np.allclose(dict1[key], dict2[key], rtol=rtol, atol=atol),
+                    f"Arrays not almost equal for key {key}",
+                )
+            elif isinstance(dict1[key], float):
+                # Use numpy's isclose for floats
+                self.assertTrue(
+                    np.isclose(dict1[key], dict2[key], rtol=rtol, atol=atol),
+                    f"Floats not almost equal for key {key}",
+                )
+            else:
+                # Direct comparison for other types
+                self.assertEqual(dict1[key], dict2[key])
+
 
 if __name__ == "__main__":
-    import pytest
-
-    pytest.main([__file__])
+    unittest.main()

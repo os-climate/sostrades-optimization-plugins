@@ -538,7 +538,6 @@ class TestFuncManager(unittest.TestCase):
         func_df['ftype'] = [INEQ_CONSTRAINT, INEQ_CONSTRAINT,
                             INEQ_CONSTRAINT, EQ_CONSTRAINT, EQ_CONSTRAINT, OBJECTIVE, OBJECTIVE]
         func_df['weight'] = [1., 1., 1., 1, 1, 0.8, 0.2]
-        func_df['aggr'] = ['sum', 'sum', 'sum', 'sum', 'sum', 'smax', 'sum']
         func_df['aggr'] = "sum"
         func_df['namespace'] = ''
         func_df['parent'] = ['ineqcst', 'ineqcst', 'ineqcst', 'eqcst', 'eqcst', 'obj', 'obj']
