@@ -48,7 +48,7 @@ def set_default_palette(
     """Set default palette to new value.
 
     Example:
-        >>> from climateeconomics.core.tools.color_palette import ColorPalette
+        >>> from sostrades_optimization_plugins.tools.plot_tools.color_palette import ColorPalette
         >>> palette = set_default_palette(ColorPalette(name="witness"))
         >>> palette.name
         'witness'
@@ -88,10 +88,13 @@ T = TypeVar("T", bound="ExtendedMixin")
 
 # Mixin class with common additional methods
 class ExtendedMixin(Generic[T]):
-    color_palette: ColorPalette = None
-    color_map: ColorMap = None
-    group_name: str = None
-    layout_custom_updates: dict = None
+    color_palette: ColorPalette | None = None
+    color_map: ColorMap | None = None
+    group_name: str | None = None
+    layout_custom_updates: dict | None = None
+    xaxes_custom_updates: dict | None = None
+    yaxes_custom_updates: dict | None = None
+    subtitle: str | None = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -171,6 +174,78 @@ class ExtendedMixin(Generic[T]):
         self.layout_custom_updates = layout_updates
         return self
 
+    def add_layout_custom_updates(self, layout_updates: dict) -> T:
+        """Set layout custom updates."""
+        if self.layout_custom_updates is None:
+            self.layout_custom_updates = {}
+        self.layout_custom_updates.update(layout_updates)
+        return self
+
+    def set_xaxes_custom_updates(self, xaxes_updates: dict) -> T:
+        """Set layout custom updates."""
+        self.xaxes_custom_updates = xaxes_updates
+        return self
+
+    def add_xaxes_custom_updates(self, xaxes_updates: dict) -> T:
+        """Update layout custom updates."""
+        if self.xaxes_custom_updates is None:
+            self.xaxes_custom_updates = {}
+        self.xaxes_custom_updates.update(xaxes_updates)
+        return self
+
+    def set_yaxes_custom_updates(self, yaxes_updates: dict) -> T:
+        """Set layout custom updates."""
+        self.yaxes_custom_updates = yaxes_updates
+        return self
+
+    def add_yaxes_custom_updates(self, yaxes_updates: dict) -> T:
+        """Update layout custom updates."""
+        if self.yaxes_custom_updates is None:
+            self.yaxes_custom_updates = {}
+        self.yaxes_custom_updates.update(yaxes_updates)
+        return self
+
+    def add_rangeslider(self, options: dict | None = None) -> T:
+        """Add a x-axis rangeslider to the plot."""
+
+        if options is None:
+            options = {
+                "rangeslider_visible": True,
+                "rangeselector": {
+                    "buttons": [
+                        {
+                            "count": 1,
+                            "label": "1m",
+                            "step": "month",
+                            "stepmode": "backward",
+                        },
+                        {
+                            "count": 6,
+                            "label": "6m",
+                            "step": "month",
+                            "stepmode": "backward",
+                        },
+                        {
+                            "count": 1,
+                            "label": "YTD",
+                            "step": "year",
+                            "stepmode": "todate",
+                        },
+                        {
+                            "count": 1,
+                            "label": "1y",
+                            "step": "year",
+                            "stepmode": "backward",
+                        },
+                        {"step": "all"},
+                    ]
+                },
+                "type": "date",
+            }
+
+        self.add_xaxes_custom_updates(options)
+        return self
+
     def to_plotly(self, logger=None) -> go.Figure:
         """Convert to plotly figure."""
         fig: go.Figure = super().to_plotly(logger=logger)
@@ -179,7 +254,7 @@ class ExtendedMixin(Generic[T]):
         if self.color_palette is not None:
             # Check if color palette has enough colors to plot all the traces
             if len(self.color_palette.main_colors) < len(fig.data):
-                msg = "Palette does not have enough colors for plotting all the data."
+                msg = f"Palette ({self.color_palette.name}) does not have enough colors for plotting all the data."
                 raise ValueError(msg)
 
             fig.update_layout(colorway=self.color_palette.main_colors)
@@ -216,11 +291,76 @@ class ExtendedMixin(Generic[T]):
         fig.update_layout(xaxis={"showgrid": False})
         fig.update_yaxes(rangemode="tozero")
 
+        # Make ticks larger
+        fig.update_layout(
+            xaxis={
+                "tickfont": {
+                    "size": 12,  # Size for x-axis tick labels
+                },
+            },
+            yaxis={
+                "tickfont": {
+                    "size": 12,  # Size for y-axis tick labels
+                },
+            },
+        )
+
         # Update layout with custom layout updates
         if self.layout_custom_updates:
             fig.update_layout(**self.layout_custom_updates)
 
+        if self.xaxes_custom_updates:
+            fig.update_xaxes(**self.xaxes_custom_updates)
+
+        if self.yaxes_custom_updates:
+            fig.update_yaxes(**self.yaxes_custom_updates)
+
         return fig
+
+    def get_default_title_layout(self, title_name="", pos_x=0.1, pos_y=0.9):
+        """
+        Generate a plotly layout dictionary for title configuration.
+
+        Args:
+            title_name (str): Title of the chart.
+            pos_x (float): Position of title on x axis.
+            pos_y (float): Position of title on y axis.
+
+        Returns:
+            dict: Dictionary containing plotly layout configuration for the title.
+
+        """
+        # Make titles look nicer
+        subtitle_text = (
+            f"<br><span style='font-size: 12px'>{self.subtitle}</span>"
+            if self.subtitle is not None
+            else ""
+        )
+        title_dict = {
+            "text": f"<b>{title_name}</b>{subtitle_text}",
+            "x": pos_x,  # 0 means left alignment (0 to 1 scale)
+            "y": pos_y,
+            "xanchor": "left",
+            "yanchor": "top",
+            "font": {
+                "size": 16,  # Main title size
+            },
+        }
+
+        return title_dict
+
+    def get_default_font_layout(self):
+        """Generate plotly layout dict for font
+
+        :return: font_dict : dict that contains plotly layout for the font
+        :type: dict
+        """
+        font_dict = {
+            "family": 'Roboto, "Open Sans", "Helvetica Neue", Arial, sans-serif',
+            "size": 10,
+            "color": "#333333",
+        }
+        return font_dict
 
 
 class WITNESSTwoAxesInstanciatedChart(
@@ -230,7 +370,8 @@ class WITNESSTwoAxesInstanciatedChart(
 
 
 class WITNESSInstantiatedPlotlyNativeChart(
-    ExtendedMixin["WITNESSInstantiatedPlotlyNativeChart"], BaseInstantiatedPlotlyNativeChart
+    ExtendedMixin["WITNESSInstantiatedPlotlyNativeChart"],
+    BaseInstantiatedPlotlyNativeChart,
 ):
     pass
 

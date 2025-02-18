@@ -53,7 +53,8 @@
         "sostrades_optimization_plugins/tools/cst_manager/database.py",
         "sostrades_optimization_plugins/tools/cst_manager/fileutils.py",
         "sostrades_optimization_plugins/tools/cst_manager/func_manager_common.py",
-        "sostrades_optimization_plugins/tools/cst_manager/__init__.py"
+        "sostrades_optimization_plugins/tools/cst_manager/__init__.py",
+        "sostrades_optimization_plugins/models/test_class.py"
     ],
     "airbus_rev_commit": "d833fdf740389587b876e30f084631430687fa5a"
 }

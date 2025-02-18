@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+
 from __future__ import annotations
 
 from collections import defaultdict
@@ -101,11 +102,26 @@ class DifferentiableModel:
 
         self._params = {}
         self._output_types = {}
+        self.temp_variables = {}
 
         self.flatten_dfs = flatten_dfs
 
+        # Internal variables
+        self._for_grad: bool = False
+
         # Default methods
         self.compute_partial = self.compute_partial_bwd
+
+    def _reset_outputs(self):
+        self.outputs = {}
+        self.temp_variables = {}
+        self._output_types = {}
+        self.dataframes_outputs_colnames: dict[str : list[str]] = {}
+        self.dataframes_inputs_colnames: dict[str : list[str]] = {}
+
+    def _reset(self):
+        self._reset_outputs()
+        self.inputs = {}
 
     @property
     def parameters(self) -> dict[str, float, np.ndarray, dict]:
@@ -150,38 +166,139 @@ class DifferentiableModel:
 
         Args:
             inputs_in (dict): A dictionary containing input names and their values.
+                Can contain nested dictionaries with DataFrames or arrays.
 
         Raises:
             TypeError: If a DataFrame input contains non-numeric data.
             ValueError: If an input array has more than 2 dimensions.
 
+        Examples:
+            >>> inputs = {
+            ...     'simple_array': [1, 2, 3],
+            ...     'level1': {
+            ...         'df1': pd.DataFrame({
+            ...             'A': [1, 2, 3],
+            ...             'B': [4, 5, 6]
+            ...         }),
+            ...         'level2': {
+            ...             'df2': pd.DataFrame({
+            ...                 'C': [7, 8, 9],
+            ...                 'D': [10, 11, 12]
+            ...             }),
+            ...             'array': [1, 2, 3]
+            ...         }
+            ...     }
+            ... }
+
+            With self.flatten_dfs = True:
+            >>> model.set_inputs(inputs)
+            # Results in:
+            # self.inputs = {
+            ...     'simple_array': array([1, 2, 3]),
+            ...     'level1': {
+            ...         'df1:A': array([1, 2, 3]),
+            ...         'df1:B': array([4, 5, 6]),
+            ...         'level2': {
+            ...             'df2:C': array([7, 8, 9]),
+            ...             'df2:D': array([10, 11, 12]),
+            ...             'array': array([1, 2, 3])
+            ...         }
+            ...     }
+            ... }
+
+            With self.flatten_dfs = False:
+            >>> model.set_inputs(inputs)
+            # Results in:
+            # self.inputs = {
+            ...     'simple_array': array([1, 2, 3]),
+            ...     'level1': {
+            ...         'df1': {
+            ...             'A': array([1, 2, 3]),
+            ...             'B': array([4, 5, 6])
+            ...         },
+            ...         'level2': {
+            ...             'df2': {
+            ...                 'C': array([7, 8, 9]),
+            ...                 'D': array([10, 11, 12])
+            ...             },
+            ...             'array': array([1, 2, 3])
+            ...         }
+            ...     }
+            ... }
         """
-        inputs = {}
-
+        self._reset()
         self.dataframes_inputs_colnames = {}
-        for key, value in inputs_in.items():
-            if isinstance(value, pd.DataFrame):
-                if not all(np.issubdtype(dtype, np.number) for dtype in value.dtypes):
-                    msg = f"DataFrame '{key}' contains non-numeric data."
-                    raise TypeError(msg)
-                if self.flatten_dfs:
-                    self.dataframes_inputs_colnames[key] = list(value.columns)
-                    for col in value.columns:
-                        inputs[f"{key}:{col}"] = value[col].to_numpy()
-                else:
-                    inputs[key] = {col: value[col].to_numpy() for col in value.columns}
-            elif isinstance(value, pd.Series):
-                inputs[key] = value.to_numpy()
+        self.inputs = self._process_input_dict(inputs_in)
 
-            elif isinstance(value, (list, np.ndarray)):
-                if len(np.array(value).shape) > 2:
+    def _process_input_dict(self, input_dict: dict, parent_key: str = "") -> dict:
+        """Recursively process input dictionary to handle nested structures.
+
+        Args:
+            input_dict (dict): Dictionary to process
+            parent_key (str): Parent key for nested structures
+
+        Returns:
+            dict: Processed dictionary with flattened DataFrames if self.flatten_dfs is True
+
+        Examples:
+            >>> nested_dict = {
+            ...     'level1': {
+            ...         'df1': pd.DataFrame({
+            ...             'A': [1, 2, 3]
+            ...         }),
+            ...         'array': [4, 5, 6]
+            ...     }
+            ... }
+
+            >>> model._process_input_dict(nested_dict)  # with flatten_dfs = True
+            {
+                'level1': {
+                    'df1:A': array([1, 2, 3]),
+                    'array': array([4, 5, 6])
+                }
+            }
+        """
+        processed_inputs = {}
+
+        for key, value in input_dict.items():
+            current_key = f"{parent_key}:{key}" if parent_key else key
+
+            if isinstance(value, dict):
+                processed_inputs[key] = self._process_input_dict(value, key)
+
+            elif isinstance(value, pd.DataFrame):
+                if not all(np.issubdtype(dtype, np.number) for dtype in value.dtypes):
+                    msg = f"DataFrame '{current_key}' contains non-numeric data."
+                    raise TypeError(msg)
+
+                if self.flatten_dfs:
+                    self.dataframes_inputs_colnames[current_key] = list(value.columns)
+                    df_dict = {
+                        f"{key}:{col}": value[col].to_numpy() for col in value.columns
+                    }
+                    processed_inputs.update(df_dict)
+                else:
+                    processed_inputs[key] = {
+                        col: value[col].to_numpy() for col in value.columns
+                    }
+
+            elif isinstance(value, pd.Series):
+                processed_inputs[key] = value.to_numpy()
+
+            elif isinstance(value, np.ndarray):
+                if len(value.shape) > 2:
                     msg = f"Input '{key}' has too many dimensions; only 1D or 2D arrays allowed."
                     raise ValueError(msg)
-                inputs[key] = np.array(value)
-            else:
-                inputs[key] = value
+                processed_inputs[key] = np.array(value)
 
-        self.inputs = inputs
+            else:
+                processed_inputs[key] = value
+
+        return processed_inputs
+
+    def set_output(self, key: str, value) -> None:
+        """Set the output key with value."""
+        self.outputs[key] = value
 
     def set_output_types(self, output_types: dict[str, str]) -> None:
         """Set the types of the output variables.
@@ -245,20 +362,41 @@ class DifferentiableModel:
             return pd.DataFrame(source[name])
 
         # If using flatten_dfs, check for columns with this base name
-        if self.flatten_dfs:
-            prefix = f"{name}:"
-            columns = {}
-            for key, value in source.items():
-                if key.startswith(prefix) and isinstance(value, np.ndarray):
-                    col_name = key[
-                        len(prefix) :
-                    ]  # Remove the prefix to get column name
-                    columns[col_name] = value
+        # if self.flatten_dfs:
+        prefix = f"{name}:"
+        columns = {}
+        columns_in_sources = list(
+            map(
+                lambda x: x[0],
+                list(
+                    filter(
+                        lambda item: item[0].startswith(prefix)
+                        and isinstance(item[1], np.ndarray),
+                        source.items(),
+                    )
+                ),
+            )
+        )
+        for col_with_prefix in columns_in_sources:
+            col_name = col_with_prefix[
+                len(prefix) :
+            ]  # Remove the prefix to get column name
+            columns[col_name] = source[col_with_prefix]
 
-            if columns:  # Only create DataFrame if we found matching columns
-                return pd.DataFrame(columns)
+        if columns:  # Only create DataFrame if we found matching columns
+            return pd.DataFrame(columns)
 
         return None
+
+    def get_base_name(self, get_from: str = "outputs"):
+        if get_from == "inputs":
+            source = self.inputs
+        elif get_from == "outputs":
+            source = self.outputs
+        else:
+            source = self.outputs
+
+        return {key.split(":", 1)[0] for key in source if ":" in key}
 
     def get_dataframes(self, get_from: str = "outputs") -> dict[str, pd.DataFrame]:
         """Convert all suitable outputs or inputs to pandas DataFrames.
@@ -282,7 +420,7 @@ class DifferentiableModel:
 
         if self.flatten_dfs:
             # Find all unique base names in flattened outputs
-            base_names = {key.split(":", 1)[0] for key in source if ":" in key}
+            base_names = self.get_base_name(get_from=get_from)
             for base_name in base_names:
                 df = self.get_dataframe(base_name)
                 if df is not None:
@@ -309,7 +447,7 @@ class DifferentiableModel:
             source = self.outputs
 
         for key, value in source.items():
-            if ":" not in key and not isinstance(value, dict):
+            if ":" not in key:
                 result[key] = value
 
         return result
@@ -380,7 +518,9 @@ class DifferentiableModel:
             def wrapped_compute(args: InputType) -> OutputType:
                 temp_inputs = deepcopy(self.inputs)
                 self.inputs = args
+                self._for_grad = True
                 self.compute()
+                self._for_grad = False
                 self.inputs = temp_inputs
                 return self.outputs[output_name]
 
@@ -399,7 +539,9 @@ class DifferentiableModel:
                         temp_inputs = deepcopy(self.inputs)
                         for i, col in enumerate(self.inputs[input_name].keys()):
                             self.inputs[input_name][col] = args[i]
+                        self._for_grad = True
                         self.compute()
+                        self._for_grad = False
                         self.inputs = temp_inputs
                         return self.outputs[output_name]
                 else:
@@ -410,7 +552,9 @@ class DifferentiableModel:
                     ) -> OutputType:
                         temp_inputs = deepcopy(self.inputs)
                         self.inputs[input_name] = arg
+                        self._for_grad = True
                         self.compute()
+                        self._for_grad = False
                         self.inputs = temp_inputs
                         return self.outputs[output_name]
 
@@ -462,6 +606,7 @@ class DifferentiableModel:
 
         else:  # If not, compute the jacobian for each input
             for wrapped_compute, input_name in zip(wrapped_computes, input_names):
+                self._reset_outputs()
                 if isinstance(self.inputs[input_name], dict):  # For DataFrame inputs
                     jacobians = {}
                     argnum_kword = (
@@ -823,15 +968,140 @@ class DifferentiableModel:
             for colname in self.dataframes_outputs_colnames[df_outputname]
         ]
 
-    def get_colnames_output_dataframe(self, df_name: str, expect_years: bool = False, full_path: bool = False):
+    def get_colnames_output_dataframe(
+        self, df_name: str, expect_years: bool = False, full_path: bool = False
+    ):
+        """Retrieves column names for a specific output DataFrame.
+
+        Args:
+            df_name (str): Name of the DataFrame.
+            expect_years (bool): If True, excludes the 'years' column from the result.
+                Defaults to False.
+            full_path (bool): If True, returns full column paths including DataFrame name.
+                Defaults to False.
+
+        Returns:
+            list[str]: List of column names or full column paths.
+        """
         columns_names = list(filter(lambda key: key.startswith(f'{df_name}:'), self.outputs.keys()))
-        if expect_years:
+        if expect_years and f'{df_name}:years' in columns_names:
             columns_names.remove(f'{df_name}:years')
+
         if not full_path:
-            columns_names = [col.replace(f'{df_name}:', '') for col in columns_names]
+            columns_names = [col.replace(f"{df_name}:", "") for col in columns_names]
         return columns_names
 
     def get_cols_output_dataframe(self, df_name: str, expect_years: bool = False):
-        columns_names = self.get_colnames_output_dataframe(df_name=df_name, expect_years=expect_years, full_path=True)
+        """
+        Retrieve column values for a specific output DataFrame.
+
+        Args:
+            df_name (str): Name of the DataFrame.
+            expect_years (bool): If True, excludes the 'years' column from the result.
+                Defaults to False.
+
+        Returns:
+            list[np.ndarray]: List of column values as numpy arrays.
+        """
+        columns_names = self.get_colnames_output_dataframe(
+            df_name=df_name, expect_years=expect_years, full_path=True
+        )
         columns = [self.outputs[col] for col in columns_names]
         return columns
+
+    def get_colnames_input_dataframe(
+        self, df_name: str, expect_years: bool = False, full_path: bool = False
+    ):
+        columns_names = list(filter(lambda key: key.startswith(f'{df_name}:'), self.inputs.keys()))
+        if expect_years and f'{df_name}:years' in columns_names:
+            columns_names.remove(f'{df_name}:years')
+        if not full_path:
+            columns_names = [col.replace(f"{df_name}:", "") for col in columns_names]
+        return columns_names
+
+    def get_cols_input_dataframe(self, df_name: str, expect_years: bool = False):
+        columns_names = self.get_colnames_input_dataframe(
+            df_name=df_name, expect_years=expect_years, full_path=True
+        )
+        columns = [self.inputs[col] for col in columns_names]
+        return columns
+
+    def sum_cols(self, cols: list[np.ndarray | ArrayLike]) -> ArrayLike:
+        """
+        Perform summation of arrays in an autograd-compatible manner.
+
+        Args:
+            cols (list[np.ndarray | ArrayLike]): List of arrays to sum.
+
+        Returns:
+            ArrayLike: Sum of all input arrays.
+
+        Note:
+            This method ensures compatibility with automatic differentiation by avoiding
+            direct numpy sum operations.
+        """
+        sum_result = cols[0] * 0.0 + 0.0
+        for col in cols:
+            sum_result = sum_result + col
+        return sum_result
+
+
+    @staticmethod
+    def _df_to_dict(df: pd.DataFrame, parent_name: str = None) -> dict:
+        """Convert a dataframe into a dictionary of numpy arrays.
+
+        Args:
+            df (pd.DataFrame): Dataframe to convert.
+            parent_name (str, optional): Parent name to prefix column names with.
+                If provided, keys will be formatted as 'parent_name:column_name'.
+                Defaults to None.
+
+        Returns:
+            dict: Dictionary of numpy arrays where keys are column names
+                (optionally prefixed with parent_name) and values are
+                numpy arrays of the column data
+        """
+        if parent_name is not None:
+            return {f"{parent_name}:{col}": df[col].to_numpy() for col in df.columns}
+        return {col: df[col].to_numpy() for col in df.columns}
+    def cons_smooth_maximum_vect(self, value, alpha=1E16):
+        """
+        Conservative smooth maximum function.
+        This modified version of the smooth_max adds an epsilon value to the smoothed value
+        in order to have a conservative value (always smooth_value > max(values))
+        """
+        cst_array = self.np.array(value)
+        max_exp = 650  # max value for exponent input, higher value gives infinity
+        min_exp = -300
+        max_alphax = self.np.amax(alpha * cst_array, axis=1)
+
+        k = max_alphax - max_exp
+        # Deal with underflow . max with exp(-300)
+        exp_func = self.np.maximum(min_exp, alpha * cst_array -
+                                         self.np.repeat(k, cst_array.shape[1]).reshape(cst_array.shape))
+        den = self.np.sum(self.np.exp(exp_func), axis=1)
+        num = self.np.sum(cst_array * self.np.exp(exp_func), axis=1)
+        result = num / den + 0.3 / alpha
+        """
+        result = self.np.where(den != 0, num / den + 0.3 / alpha, self.np.amax(cst_array, axis=1))
+        if (den == 0).any():
+            print('Warning in smooth_maximum! den equals 0, hard max is used')
+        """
+
+        return result
+    def cons_smooth_minimum_vect(self, value):
+        """Conservative smooth minimum function"""
+        return - self.cons_smooth_maximum_vect(- value)
+
+    def pseudo_max(self, value1: np.ndarray, value2: Union[np.ndarray, float]):
+        """pseudo-max function"""
+        if isinstance(value2, float):
+            value2 = self.np.ones_like(value1) * value2
+
+        array_for_pseudo_max = self.np.array([value1, value2]).T
+        result = self.cons_smooth_maximum_vect(array_for_pseudo_max)
+        return result
+
+    def pseudo_min(self, value1: np.ndarray, value2: Union[np.ndarray, float]):
+        """pseudo-min function"""
+        return - self.pseudo_max(- value1, - value2)
