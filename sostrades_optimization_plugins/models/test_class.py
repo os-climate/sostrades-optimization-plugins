@@ -36,18 +36,20 @@ class GenericDisciplinesTestClass(unittest.TestCase):
     ns_dict = {}
     pickle_prefix = ""
     model_name = "to_fill"
+    inputs_dicts = {}
 
     def tearDown(self) -> None:
         if hasattr(self, "stream_name"):
             self.pickle_prefix = getattr(self, "stream_name")
-
+        inputs = self.get_inputs_dict()
+        inputs.update(self.inputs_dicts)
         discipline_test_function(
             module_path=self.mod_path,
             model_name=self.model_name,
             name=self.name,
             jacobian_test=self.jacobian_test,
             show_graphs=self.show_graphs,
-            inputs_dict=self.get_inputs_dict(),
+            inputs_dict=inputs,
             namespaces_dict=self.ns_dict,
             pickle_directory=self.pickle_directory,
             pickle_name=f'{self.pickle_prefix}_{self.model_name}.pkl',
