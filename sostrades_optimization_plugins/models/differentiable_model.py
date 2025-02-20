@@ -1095,7 +1095,7 @@ class DifferentiableModel:
 
     def pseudo_max(self, value1: np.ndarray, value2: Union[np.ndarray, float]):
         """pseudo-max function"""
-        if isinstance(value2, float):
+        if isinstance(value2, (float, int)):
             value2 = self.np.ones_like(value1) * value2
 
         array_for_pseudo_max = self.np.array([value1, value2]).T
