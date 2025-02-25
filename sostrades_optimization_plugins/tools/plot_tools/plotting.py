@@ -1,4 +1,4 @@
-'''
+"""
 Copyright 2024 Capgemini
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 from __future__ import annotations
 
@@ -37,6 +37,7 @@ if TYPE_CHECKING:
     from sostrades_optimization_plugins.tools.plot_tools.color_palette import (
         ColorPalette,
     )
+
 
 DEFAULT_PALETTE: ColorPalette | None = None
 DEFAULT_COLORMAP: ColorMap | None = None
@@ -94,25 +95,32 @@ class ExtendedMixin(Generic[T]):
     layout_custom_updates: dict | None = None
     xaxes_custom_updates: dict | None = None
     yaxes_custom_updates: dict | None = None
+
+    # Vars that do not have setters yet.
     subtitle: str | None = None
+    use_scattergl: bool = False
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
         if "color_palette" in kwargs:
-            self.set_color_palette(kwargs.get("color_palette"))
+            self.set_color_palette(kwargs.pop("color_palette"))
         else:
             self.set_color_palette(DEFAULT_PALETTE)
 
         if "group_name" in kwargs:
-            self.set_group(kwargs.get("group_name"))
+            self.set_group(kwargs.pop("group_name"))
 
         if "color_map" in kwargs:
-            self.set_color_map(kwargs.get("color_map"))
+            self.set_color_map(kwargs.pop("color_map"))
         else:
             self.set_color_map(DEFAULT_COLORMAP)
 
+        if "use_scattergl" in kwargs:
+            self.use_scattergl = kwargs.pop("use_scattergl")
+
+        super().__init__(*args, **kwargs)
+
     def set_group(self, group_name: str) -> T:
+        """Set the color palette group."""
         if self.color_palette is None:
             msg = "No palette as been set yet. Please set it specifying a group."
             raise ValueError(msg)
