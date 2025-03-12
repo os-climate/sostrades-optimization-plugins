@@ -53,6 +53,10 @@ class AutodifferentiedDisc(SoSWrapp):
         # todo : remove filtration later when we will be able to collect only non-numerical inputs
         inputs = self.get_non_numerical_inputs()
         inputs_filtered = {key: value for key, value in inputs.items() if value is not None}
+        # bugfix:
+        for input_key, input_vardescr in {**self.DESC_IN, **self.inst_desc_in}.items():
+            if input_vardescr['type'] == 'float' and isinstance(inputs[input_key], np.ndarray):
+                inputs_filtered[input_key] = float(inputs_filtered[input_key])
         self.model.set_inputs(inputs_filtered)
         self.model.compute()
         outputs = self.model.get_all_variables()
