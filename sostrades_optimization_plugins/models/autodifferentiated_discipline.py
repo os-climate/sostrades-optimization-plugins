@@ -31,7 +31,7 @@ class AutodifferentiedDisc(SoSWrapp):
     coupling_inputs = []  # inputs verified during jacobian test
     coupling_outputs = []  # outputs verified during jacobian test
     autoconfigure_gradient_variables: bool = True
-
+    _ontology_data = {}
     def __init__(self, sos_name, logger: logging.Logger):
         super().__init__(sos_name, logger)
         self.model: Union[DifferentiableModel, None] = None
