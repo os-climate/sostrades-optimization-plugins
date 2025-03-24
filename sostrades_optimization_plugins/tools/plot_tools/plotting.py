@@ -18,6 +18,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Generic, TypeVar
 
+import numpy as np
 from sostrades_core.tools.post_processing.charts.two_axes_instanciated_chart import (
     TwoAxesInstanciatedChart as BaseTwoAxesInstanciatedChart,
 )
@@ -99,6 +100,7 @@ class ExtendedMixin(Generic[T]):
     # Vars that do not have setters yet.
     subtitle: str | None = None
     use_scattergl: bool = False
+    flag_remove_empty_traces: bool = False
 
     def __init__(self, *args, **kwargs):
         if "color_palette" in kwargs:
@@ -233,12 +235,12 @@ class ExtendedMixin(Generic[T]):
                             "step": "month",
                             "stepmode": "backward",
                         },
-                        {
-                            "count": 1,
-                            "label": "YTD",
-                            "step": "year",
-                            "stepmode": "todate",
-                        },
+                        # {
+                        #     "count": 1,
+                        #     "label": "YTD",
+                        #     "step": "year",
+                        #     "stepmode": "todate",
+                        # },
                         {
                             "count": 1,
                             "label": "1y",
@@ -301,15 +303,9 @@ class ExtendedMixin(Generic[T]):
 
         # Make ticks larger
         fig.update_layout(
-            xaxis={
-                "tickfont": {
-                    "size": 12,  # Size for x-axis tick labels
-                },
-            },
-            yaxis={
-                "tickfont": {
-                    "size": 12,  # Size for y-axis tick labels
-                },
+            {
+                f"{axis}": {"tickfont": {"size": 12}}
+                for axis in ["xaxis", "yaxis", "yaxis2"]
             },
         )
 
@@ -322,6 +318,9 @@ class ExtendedMixin(Generic[T]):
 
         if self.yaxes_custom_updates:
             fig.update_yaxes(**self.yaxes_custom_updates)
+
+        if self.flag_remove_empty_traces:
+            return self.remove_empty_traces(fig)
 
         return fig
 
@@ -369,6 +368,60 @@ class ExtendedMixin(Generic[T]):
             "color": "#333333",
         }
         return font_dict
+
+    @staticmethod
+    def remove_empty_traces(fig: go.Figure) -> go.Figure:
+        """
+        Remove traces that contain only zero values from a Plotly figure.
+
+        Returns the modified figure.
+        """
+        # Check if figure has no traces
+        if len(fig.data) == 0:
+            return fig
+
+        # Create a list to store indices of traces to remove
+        traces_to_remove = []
+
+        # Check each trace
+        for i, trace in enumerate(fig.data):
+            # Get y data (we only need to check y values for zero series)
+            y_data = np.array(trace.y) if trace.y is not None else np.array([])
+
+            # If y contains only zeros (or is empty), mark for removal
+            if len(y_data) == 0 or np.all(np.isclose(y_data, 0, atol=1e-10)):
+                traces_to_remove.append(i)
+
+        # Remove traces in reverse order to avoid index shifting
+        for index in sorted(traces_to_remove, reverse=True):
+            fig.data = tuple(trace for i, trace in enumerate(fig.data) if i != index)
+
+        return fig
+
+    @staticmethod
+    def is_empty_or_zero_figure(fig: go.Figure) -> bool:
+        """
+        Check if a Plotly figure has no traces or if all traces contain only zero values.
+        """
+        # Check if figure has no traces
+        if len(fig.data) == 0:
+            return True
+
+        # Check each trace
+        for trace in fig.data:
+            # Get x and y data
+            x_data = np.array(trace.x) if trace.x is not None else np.array([])
+            y_data = np.array(trace.y) if trace.y is not None else np.array([])
+
+            # If either x or y contains non-zero values, return False
+            if not (
+                np.all(np.isclose(x_data, 0, atol=1e-10))
+                and np.all(np.isclose(y_data, 0, atol=1e-10))
+            ):
+                return False
+
+        # If we get here, all traces contain only zeros
+        return True
 
 
 class WITNESSTwoAxesInstanciatedChart(
