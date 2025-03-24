@@ -234,12 +234,12 @@ class ExtendedMixin(Generic[T]):
                             "step": "month",
                             "stepmode": "backward",
                         },
-                        {
-                            "count": 1,
-                            "label": "YTD",
-                            "step": "year",
-                            "stepmode": "todate",
-                        },
+                        # {
+                        #     "count": 1,
+                        #     "label": "YTD",
+                        #     "step": "year",
+                        #     "stepmode": "todate",
+                        # },
                         {
                             "count": 1,
                             "label": "1y",
