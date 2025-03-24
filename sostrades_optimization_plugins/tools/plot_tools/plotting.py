@@ -100,6 +100,7 @@ class ExtendedMixin(Generic[T]):
     # Vars that do not have setters yet.
     subtitle: str | None = None
     use_scattergl: bool = False
+    flag_remove_empty_traces: bool = False
 
     def __init__(self, *args, **kwargs):
         if "color_palette" in kwargs:
@@ -318,6 +319,9 @@ class ExtendedMixin(Generic[T]):
         if self.yaxes_custom_updates:
             fig.update_yaxes(**self.yaxes_custom_updates)
 
+        if self.flag_remove_empty_traces:
+            return self.remove_empty_traces(fig)
+
         return fig
 
     def get_default_title_layout(self, title_name="", pos_x=0.1, pos_y=0.9):
@@ -364,6 +368,35 @@ class ExtendedMixin(Generic[T]):
             "color": "#333333",
         }
         return font_dict
+
+    @staticmethod
+    def remove_empty_traces(fig: go.Figure) -> go.Figure:
+        """
+        Remove traces that contain only zero values from a Plotly figure.
+
+        Returns the modified figure.
+        """
+        # Check if figure has no traces
+        if len(fig.data) == 0:
+            return fig
+
+        # Create a list to store indices of traces to remove
+        traces_to_remove = []
+
+        # Check each trace
+        for i, trace in enumerate(fig.data):
+            # Get y data (we only need to check y values for zero series)
+            y_data = np.array(trace.y) if trace.y is not None else np.array([])
+
+            # If y contains only zeros (or is empty), mark for removal
+            if len(y_data) == 0 or np.all(np.isclose(y_data, 0, atol=1e-10)):
+                traces_to_remove.append(i)
+
+        # Remove traces in reverse order to avoid index shifting
+        for index in sorted(traces_to_remove, reverse=True):
+            fig.data = tuple(trace for i, trace in enumerate(fig.data) if i != index)
+
+        return fig
 
     @staticmethod
     def is_empty_or_zero_figure(fig: go.Figure) -> bool:
