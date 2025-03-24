@@ -302,15 +302,9 @@ class ExtendedMixin(Generic[T]):
 
         # Make ticks larger
         fig.update_layout(
-            xaxis={
-                "tickfont": {
-                    "size": 12,  # Size for x-axis tick labels
-                },
-            },
-            yaxis={
-                "tickfont": {
-                    "size": 12,  # Size for y-axis tick labels
-                },
+            {
+                f"{axis}": {"tickfont": {"size": 12}}
+                for axis in ["xaxis", "yaxis", "yaxis2"]
             },
         )
 
@@ -387,8 +381,10 @@ class ExtendedMixin(Generic[T]):
             y_data = np.array(trace.y) if trace.y is not None else np.array([])
 
             # If either x or y contains non-zero values, return False
-            if not (np.all(np.isclose(x_data, 0, atol=1e-10)) and
-                    np.all(np.isclose(y_data, 0, atol=1e-10))):
+            if not (
+                np.all(np.isclose(x_data, 0, atol=1e-10))
+                and np.all(np.isclose(y_data, 0, atol=1e-10))
+            ):
                 return False
 
         # If we get here, all traces contain only zeros
