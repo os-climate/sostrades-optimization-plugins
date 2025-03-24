@@ -18,6 +18,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Generic, TypeVar
 
+import numpy as np
 from sostrades_core.tools.post_processing.charts.two_axes_instanciated_chart import (
     TwoAxesInstanciatedChart as BaseTwoAxesInstanciatedChart,
 )
@@ -369,6 +370,29 @@ class ExtendedMixin(Generic[T]):
             "color": "#333333",
         }
         return font_dict
+
+    @staticmethod
+    def is_empty_or_zero_figure(fig: go.Figure) -> bool:
+        """
+        Check if a Plotly figure has no traces or if all traces contain only zero values.
+        """
+        # Check if figure has no traces
+        if len(fig.data) == 0:
+            return True
+
+        # Check each trace
+        for trace in fig.data:
+            # Get x and y data
+            x_data = np.array(trace.x) if trace.x is not None else np.array([])
+            y_data = np.array(trace.y) if trace.y is not None else np.array([])
+
+            # If either x or y contains non-zero values, return False
+            if not (np.all(np.isclose(x_data, 0, atol=1e-10)) and
+                    np.all(np.isclose(y_data, 0, atol=1e-10))):
+                return False
+
+        # If we get here, all traces contain only zeros
+        return True
 
 
 class WITNESSTwoAxesInstanciatedChart(
