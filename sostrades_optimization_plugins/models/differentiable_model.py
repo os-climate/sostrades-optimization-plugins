@@ -1026,12 +1026,13 @@ class DifferentiableModel:
         columns = [self.inputs[col] for col in columns_names]
         return columns
 
-    def sum_cols(self, cols: list[np.ndarray | ArrayLike]) -> ArrayLike:
+    def sum_cols(self, cols: list[np.ndarray | ArrayLike], index: np.ndarray | ArrayLike | None = None) -> ArrayLike:
         """
         Perform summation of arrays in an autograd-compatible manner.
 
         Args:
             cols (list[np.ndarray | ArrayLike]): List of arrays to sum.
+            index np.ndarray | ArrayLike | None: index of reference in case cols is an empty list, to return a null array
 
         Returns:
             ArrayLike: Sum of all input arrays.
@@ -1040,6 +1041,9 @@ class DifferentiableModel:
             This method ensures compatibility with automatic differentiation by avoiding
             direct numpy sum operations.
         """
+        if len(cols) == 0 and index is not None:
+            return index * 0.
+
         sum_result = cols[0] * 0.0 + 0.0
         for col in cols:
             sum_result = sum_result + col
