@@ -47,7 +47,7 @@ class Study(StudyManager):
                        'lower_bnd': [array([0., 0., 0., 0.]), array([-10., 0.])],
                        'upper_bnd': [array([10., 10., 10., 10.]), array([10., 10.])],
                        'enable_variable': [True, True],
-                       'activated_elem': [[True], [True, True]]}
+                       'activated_elem': [[True, True, True, True], [True, True]]}
         dspace = pd.DataFrame(dspace_dict)
 
         design_var_descriptor = {'x_in': {'out_name': 'x',
