@@ -42,7 +42,7 @@ class TestDesignVar(AbstractJacobianUnittest):
                        'lower_bnd': [[0., 0., 0., 0.], [-10., 0., -10., -10., -10., -10.]],
                        'upper_bnd': [[10., 10., 10., 10.], [10., 10., 10., 10., 10., 10.]],
                        'enable_variable': [True, True],
-                       'activated_elem': [[True], [True, True]]}
+                       'activated_elem': [[True, True, True, True], [True, True, True, True, True, True]]}
         self.dspace = pd.DataFrame(dspace_dict)
 
         self.design_var_descriptor = {'x_in': {'out_name': 'x',
