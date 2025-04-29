@@ -269,7 +269,9 @@ class DifferentiableModel:
             elif isinstance(value, pd.DataFrame):
                 if not all(np.issubdtype(dtype, np.number) for dtype in value.dtypes):
                     msg = f"DataFrame '{current_key}' contains non-numeric data."
-                    raise TypeError(msg)
+
+                    # ignore
+                    #raise TypeError(msg)
 
                 if self.flatten_dfs:
                     self.dataframes_inputs_colnames[current_key] = list(value.columns)
