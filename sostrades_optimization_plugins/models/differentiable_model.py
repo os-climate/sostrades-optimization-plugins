@@ -13,9 +13,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-
 from __future__ import annotations
+import warnings
+import io
+import contextlib
 
+import logging
 from collections import defaultdict
 from copy import deepcopy
 from typing import Any, Callable, Union
@@ -59,6 +62,7 @@ class DifferentiableModel:
         ad_backend: str = "autograd",
         overload_numpy: bool = True,
         numpy_ns: str = "np",
+        sosname: str = "",
     ) -> None:
         """
         Initialize the model.
@@ -78,6 +82,15 @@ class DifferentiableModel:
             raise ValueError(error_msg)
 
         self._ad_backend = ad_backend
+        self.logger = logging.Logger("default")
+
+        # gradient tuning
+        self.sosname = sosname
+        self.gradient_tuning: bool = False
+        self.null_gradients: dict[str: list[str]] = {}
+        self.simple_gradients: dict[str: list[str]] = {}
+        self.gradients: dict[str: list[str]] = {}
+
 
         # Overload numpy namespace if required / requested
         if overload_numpy:
@@ -633,11 +646,34 @@ class DifferentiableModel:
 
                 else:  # For other inputs
                     jacobian_func = self.__jacobian(wrapped_compute)
-                    result[input_name] = jacobian_func(self.inputs[input_name])
+                    warning_buffer = io.StringIO()
+                    with contextlib.redirect_stderr(warning_buffer):
+                         with warnings.catch_warnings(record=True) as w:
+                             warnings.simplefilter("always")
+                             if not self.gradient_tuning and not(output_name in self.null_gradients and input_name in self.null_gradients[output_name]):
+                                 result[input_name] = jacobian_func(self.inputs[input_name])
+                             elif self.gradient_tuning:
+                                 result[input_name] = jacobian_func(self.inputs[input_name])
+                             if w and 'Output seems independent of input.' in str(w[0]):
+                                 if self.gradient_tuning:
+                                     if output_name not in self.null_gradients:
+                                         self.null_gradients[output_name] = []
+                                     self.null_gradients[output_name].append(input_name)
+                                 else:
+                                     pass
+                                     self.logger.warning(f"Output '{output_name}' seems independent of input '{input_name}'")
+                             elif self.gradient_tuning: # if gradient is non zero, it might be of a simple form
+                                 simple_gradient = self._is_simple_gradient(result[input_name])
+                                 if simple_gradient:
+                                     if output_name not in self.simple_gradients:
+                                         self.simple_gradients[output_name] = []
+                                     self.simple_gradients[output_name].append(input_name)
+
 
             if is_single:
                 return result[input_names[0]]
 
+        self.gradients[output_name] = result
         return result
 
     def compute_partial_all_inputs(self, output_name: str) -> dict:
@@ -1111,3 +1147,9 @@ class DifferentiableModel:
     def pseudo_min(self, value1: np.ndarray, value2: Union[np.ndarray, float]):
         """pseudo-min function"""
         return - self.pseudo_max(- value1, - value2)
+
+    def _is_simple_gradient(self, value: np.ndarray) -> bool:
+        """Inspect if the gradient if of a simple form, (proportionnal to identity)"""
+        result = False
+
+        return result
