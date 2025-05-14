@@ -14,11 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 from __future__ import annotations
-import warnings
-import io
-import contextlib
 
+import contextlib
+import io
 import logging
+import warnings
 from collections import defaultdict
 from copy import deepcopy
 from typing import Any, Callable, Union
@@ -85,10 +85,12 @@ class DifferentiableModel:
         self.logger = logging.Logger("default")
 
         # gradient tuning
+        if len(sosname) == 0:
+            raise Exception("Name your model")
         self.sosname = sosname
         self.gradient_tuning: bool = False
-        self.null_gradients: dict[str: list[str]] = {}
-        self.simple_gradients: dict[str: list[str]] = {}
+        self.null_gradients_cache: dict[str: list[str]] = {}
+        self.null_gradients_tuning: dict[str: dict[str: bool]] = {}
         self.gradients: dict[str: list[str]] = {}
 
 
@@ -620,6 +622,7 @@ class DifferentiableModel:
             result = jacobian_func(self.inputs)
 
         else:  # If not, compute the jacobian for each input
+            self.null_gradients_tuning[output_name] = {}
             for wrapped_compute, input_name in zip(wrapped_computes, input_names):
                 self._reset_outputs()
                 if isinstance(self.inputs[input_name], dict):  # For DataFrame inputs
@@ -647,27 +650,19 @@ class DifferentiableModel:
                 else:  # For other inputs
                     jacobian_func = self.__jacobian(wrapped_compute)
                     warning_buffer = io.StringIO()
+                    self.null_gradients_tuning[output_name][input_name] = False
                     with contextlib.redirect_stderr(warning_buffer):
                          with warnings.catch_warnings(record=True) as w:
                              warnings.simplefilter("always")
-                             if not self.gradient_tuning and not(output_name in self.null_gradients and input_name in self.null_gradients[output_name]):
+                             if not self.gradient_tuning and not(output_name in self.null_gradients_cache and input_name in self.null_gradients_cache[output_name]):
                                  result[input_name] = jacobian_func(self.inputs[input_name])
                              elif self.gradient_tuning:
                                  result[input_name] = jacobian_func(self.inputs[input_name])
                              if w and 'Output seems independent of input.' in str(w[0]):
                                  if self.gradient_tuning:
-                                     if output_name not in self.null_gradients:
-                                         self.null_gradients[output_name] = []
-                                     self.null_gradients[output_name].append(input_name)
+                                     self.null_gradients_tuning[output_name][input_name] = True
                                  else:
-                                     pass
-                                     self.logger.warning(f"Output '{output_name}' seems independent of input '{input_name}'")
-                             elif self.gradient_tuning: # if gradient is non zero, it might be of a simple form
-                                 simple_gradient = self._is_simple_gradient(result[input_name])
-                                 if simple_gradient:
-                                     if output_name not in self.simple_gradients:
-                                         self.simple_gradients[output_name] = []
-                                     self.simple_gradients[output_name].append(input_name)
+                                     self.logger.debug(f"Output '{output_name}' seems independent of input '{input_name}'")
 
 
             if is_single:
@@ -1147,9 +1142,3 @@ class DifferentiableModel:
     def pseudo_min(self, value1: np.ndarray, value2: Union[np.ndarray, float]):
         """pseudo-min function"""
         return - self.pseudo_max(- value1, - value2)
-
-    def _is_simple_gradient(self, value: np.ndarray) -> bool:
-        """Inspect if the gradient if of a simple form, (proportionnal to identity)"""
-        result = False
-
-        return result
