@@ -52,7 +52,7 @@ class GenericDisciplinesTestClass(unittest.TestCase):
 
     gradients_tuning: bool = False
 
-    _null_gradients_dict_list: dict[str: list[dict[str: list[str]]]] = []
+    _null_gradients_dict_list: dict[str: list[dict[str: list[str]]]] = {}
     _disciplines: dict[str: SoSWrapp] = {}
 
     def tearDown(self) -> None:
