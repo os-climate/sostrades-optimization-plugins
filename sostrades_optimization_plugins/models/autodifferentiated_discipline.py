@@ -127,7 +127,7 @@ class AutodifferentiedDisc(SoSWrapp):
                     grad_input_value = np.array([[grad_input_value]])
                 self.set_partial_derivative_for_other_types(arg_output, arg_input, grad_input_value)
 
-        if not self.gradients_tuning and os.path.exists(self.filename_null_gradients_cache):
+        if not self.gradients_tuning and len(self.model.sosname) >0 and os.path.exists(self.filename_null_gradients_cache):
             with open(self.filename_null_gradients_cache, 'r') as json_file:
                 self.model.null_gradients_cache = json.load(json_file)
 
