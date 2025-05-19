@@ -84,9 +84,6 @@ class DifferentiableModel:
         self._ad_backend = ad_backend
         self.logger = logging.Logger("default")
 
-        # gradient tuning
-        if len(sosname) == 0:
-            raise Exception("Name your model")
         self.sosname = sosname
         self.gradient_tuning: bool = False
         self.null_gradients_cache: dict[str: list[str]] = {}
