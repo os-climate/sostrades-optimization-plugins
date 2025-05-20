@@ -13,7 +13,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+import inspect
+import json
 import logging
+import os
+from time import time
 from typing import TYPE_CHECKING, Union
 
 import numpy as np
@@ -31,10 +35,25 @@ class AutodifferentiedDisc(SoSWrapp):
     coupling_inputs = []  # inputs verified during jacobian test
     coupling_outputs = []  # outputs verified during jacobian test
     autoconfigure_gradient_variables: bool = True
+    gradients_tuning: bool = False
     _ontology_data = {}
+
+    folder_name_cache = "cache_null_gradients"
     def __init__(self, sos_name, logger: logging.Logger):
         super().__init__(sos_name, logger)
         self.model: Union[DifferentiableModel, None] = None
+
+    @property
+    def file_path(self) -> str:
+        # Get the file path of the module
+        return os.path.dirname(os.path.abspath(inspect.getfile(self.__class__)))
+
+    @property
+    def filename_null_gradients_cache(self) -> str:
+        # Get the file path of the module
+        if len(self.model.sosname) == 0:
+            raise Exception("Name your model for proper cache using of gradients")
+        return os.path.join(self.file_path, self.folder_name_cache, f'cache_null_gradients_{self.model.sosname}.json')
 
     def collect_var_for_dynamic_setup(self, variable_names: Union[str, list[str]]):
         """easy method for setup sos dynamic variable gathering"""
@@ -71,6 +90,9 @@ class AutodifferentiedDisc(SoSWrapp):
         Compute jacobian for each coupling variable
         """
 
+        start = time()
+        self.model.logger = self.logger
+        self.model.gradient_tuning = self.gradients_tuning
         if self.autoconfigure_gradient_variables:
             self._auto_configure_jacobian_variables()
         # dataframes variables
@@ -105,9 +127,19 @@ class AutodifferentiedDisc(SoSWrapp):
                     grad_input_value = np.array([[grad_input_value]])
                 self.set_partial_derivative_for_other_types(arg_output, arg_input, grad_input_value)
 
+        if not self.gradients_tuning and os.path.exists(self.filename_null_gradients_cache):
+            with open(self.filename_null_gradients_cache, 'r') as json_file:
+                self.model.null_gradients_cache = json.load(json_file)
+
         for output_path in all_outputs_model_path:
-            gradients = self.model.compute_partial(output_name=output_path, input_names=all_inputs_model_path)
+            inputs_for_autodiff = all_inputs_model_path
+            gradients = self.model.compute_partial(output_name=output_path, input_names=inputs_for_autodiff)
             handle_gradients_wrt_inputs(output_path=output_path, gradients=gradients)
+
+        end = time()
+
+        duration = round(end - start,2)
+        self.logger.info(f"Autodiff gradients computation time: {duration}s for {self.sos_name} (gradients tuning: {self.gradients_tuning})")
 
     def _auto_configure_jacobian_variables(self):
         self.coupling_inputs = []
@@ -126,3 +158,12 @@ class AutodifferentiedDisc(SoSWrapp):
         val = val.replace("_", ' ')
         val = val.capitalize()
         return val
+
+
+    def dump_null_gradients_cache(self, null_gradients: dict[str: list[str]]):
+        """dump the cache of null gradients"""
+        folder_path = os.path.join(self.file_path, self.folder_name_cache)
+        if not os.path.exists(folder_path):
+            os.mkdir(folder_path)
+        with open(self.filename_null_gradients_cache, 'w') as json_file:
+            json.dump(null_gradients, json_file, indent=4)

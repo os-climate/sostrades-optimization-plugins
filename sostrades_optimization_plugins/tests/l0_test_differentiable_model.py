@@ -38,7 +38,7 @@ class ComplexTestModel(DifferentiableModel):
 
 class TestComplexDifferentiableModel(unittest.TestCase):
     def setUp(self):
-        self.model = ComplexTestModel()
+        self.model = ComplexTestModel(sosname="model")
         self.inputs = {
             "x": 1.0,
             "y": 2.0,

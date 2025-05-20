@@ -164,6 +164,9 @@ class FunctionManagerDisc(OptimManagerDisc):
         if self.FUNC_DF in inputs_dict.keys():
             func_df = inputs_dict[self.FUNC_DF]
             if func_df is not None:
+                if len(func_df) == 0:
+                    # otherwise it will cause problems in gemseo gradients chain rule computation
+                    raise Exception(f"{self.FUNC_DF} can not be empty.")
 
                 list_var = list(func_df[self.VARIABLE])
 
