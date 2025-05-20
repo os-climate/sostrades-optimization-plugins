@@ -31,7 +31,7 @@ def discipline_test_function(module_path: str, name: str, model_name: str,
                              jacobian_test: bool, coupling_inputs: List[str] = [], coupling_outputs: List[str] = [],
                              pickle_name: str = None, pickle_directory: str = None,
                              override_dump_jacobian: bool = False,
-                             show_graphs: bool = True):
+                             show_graphs: bool = True, gradients_tuning: bool = False):
     """
     Function to perform a discipline test, mimicking the behavior of the DisciplineTestTemplate class.
 
@@ -73,6 +73,8 @@ def discipline_test_function(module_path: str, name: str, model_name: str,
             graph.to_plotly().show()
 
     wrap_disc = disc.discipline_wrapp.wrapper
+    if isinstance(wrap_disc, AutodifferentiedDisc):
+        wrap_disc.gradients_tuning = gradients_tuning
     if not coupling_inputs and not coupling_outputs:
         if isinstance(wrap_disc, AutodifferentiedDisc) and wrap_disc.autoconfigure_gradient_variables:
             wrap_disc._auto_configure_jacobian_variables()
@@ -96,3 +98,4 @@ def discipline_test_function(module_path: str, name: str, model_name: str,
             inputs=get_full_varnames(coupling_inputs),
             outputs=get_full_varnames(coupling_outputs)
         )
+    return wrap_disc

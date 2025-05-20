@@ -13,9 +13,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-
 from __future__ import annotations
 
+import contextlib
+import io
+import logging
+import warnings
 from collections import defaultdict
 from copy import deepcopy
 from typing import Any, Callable, Union
@@ -59,6 +62,7 @@ class DifferentiableModel:
         ad_backend: str = "autograd",
         overload_numpy: bool = True,
         numpy_ns: str = "np",
+        sosname: str = "",
     ) -> None:
         """
         Initialize the model.
@@ -78,6 +82,14 @@ class DifferentiableModel:
             raise ValueError(error_msg)
 
         self._ad_backend = ad_backend
+        self.logger = logging.Logger("default")
+
+        self.sosname = sosname
+        self.gradient_tuning: bool = False
+        self.null_gradients_cache: dict[str: list[str]] = {}
+        self.null_gradients_tuning: dict[str: dict[str: bool]] = {}
+        self.gradients: dict[str: list[str]] = {}
+
 
         # Overload numpy namespace if required / requested
         if overload_numpy:
@@ -607,6 +619,7 @@ class DifferentiableModel:
             result = jacobian_func(self.inputs)
 
         else:  # If not, compute the jacobian for each input
+            self.null_gradients_tuning[output_name] = {}
             for wrapped_compute, input_name in zip(wrapped_computes, input_names):
                 self._reset_outputs()
                 if isinstance(self.inputs[input_name], dict):  # For DataFrame inputs
@@ -633,11 +646,26 @@ class DifferentiableModel:
 
                 else:  # For other inputs
                     jacobian_func = self.__jacobian(wrapped_compute)
-                    result[input_name] = jacobian_func(self.inputs[input_name])
+                    warning_buffer = io.StringIO()
+                    self.null_gradients_tuning[output_name][input_name] = False
+                    with contextlib.redirect_stderr(warning_buffer):
+                         with warnings.catch_warnings(record=True) as w:
+                             warnings.simplefilter("always")
+                             if not self.gradient_tuning and not(output_name in self.null_gradients_cache and input_name in self.null_gradients_cache[output_name]):
+                                 result[input_name] = jacobian_func(self.inputs[input_name])
+                             elif self.gradient_tuning:
+                                 result[input_name] = jacobian_func(self.inputs[input_name])
+                             if w and 'Output seems independent of input.' in str(w[0]):
+                                 if self.gradient_tuning:
+                                     self.null_gradients_tuning[output_name][input_name] = True
+                                 else:
+                                     self.logger.debug(f"Output '{output_name}' seems independent of input '{input_name}'")
+
 
             if is_single:
                 return result[input_names[0]]
 
+        self.gradients[output_name] = result
         return result
 
     def compute_partial_all_inputs(self, output_name: str) -> dict:
