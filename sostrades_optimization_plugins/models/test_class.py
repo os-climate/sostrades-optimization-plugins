@@ -42,6 +42,9 @@ class GenericDisciplinesTestClass(unittest.TestCase):
     pickle_prefix = ""
     model_name = "to_fill"
     inputs_dicts = {}
+    derr_approx = "complex_step"
+    step = 1e-15
+    threshold = 1e-8
 
     # GRADIENTS TUNING: usefull for Autodifferentiated disciplines.
     # When self configuration of gradient variable is enabled, the discipline uses autodifferentiation to
@@ -72,7 +75,10 @@ class GenericDisciplinesTestClass(unittest.TestCase):
             namespaces_dict=self.ns_dict,
             pickle_directory=self.pickle_directory,
             pickle_name=f'{self.pickle_prefix}_{self.model_name}.pkl',
-            override_dump_jacobian=self.override_dump_jacobian
+            override_dump_jacobian=self.override_dump_jacobian,
+            derr_approx=self.derr_approx,
+            step=self.step,
+            threshold=self.threshold
         )
         if isinstance(self._disciplines[self.mod_path], AutodifferentiedDisc) and self.gradients_tuning:
             if self.mod_path not in self._null_gradients_dict_list:

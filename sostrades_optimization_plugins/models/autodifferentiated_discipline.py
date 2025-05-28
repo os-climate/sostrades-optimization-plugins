@@ -117,6 +117,11 @@ class AutodifferentiedDisc(SoSWrapp):
         def handle_gradients_wrt_inputs(output_path: str, gradients: dict):
             any_dataframe = False
             arg_output = output_path
+            def make_tuple(varname: tuple | str):
+                if isinstance(varname, tuple):
+                    return varname
+                else:
+                    return (varname,)
             if ':' in output_path:
                 arg_output = tuple(output_path.split(':'))
                 any_dataframe = True
@@ -129,7 +134,7 @@ class AutodifferentiedDisc(SoSWrapp):
                 if len(grad_input_value.shape) == 0:
                     grad_input_value = np.array([[grad_input_value]])
                 if any_dataframe:
-                    self.set_partial_derivative_for_other_types(arg_output, arg_input, grad_input_value)
+                    self.set_partial_derivative_for_other_types(make_tuple(arg_output), make_tuple(arg_input), grad_input_value)
                 else:
                     self.set_partial_derivative(arg_output, arg_input, grad_input_value)
         if not self.gradients_tuning and len(self.model.sosname) >0 and os.path.exists(self.filename_null_gradients_cache):
