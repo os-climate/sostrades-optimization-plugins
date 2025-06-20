@@ -960,11 +960,11 @@ class FunctionManagerDisc(OptimManagerDisc):
                     mod_parameter_dict[self.PARENT] = row[self.PARENT]
             else:
                 mod_parameter_dict[self.PARENT] = None
-            for column in mod_columns_dict.keys():
+            for column, mod in mod_columns_dict.items():
                 if column in row.index:
                     mod_parameter_dict[column] = row[column]
                 else:
-                    mod_parameter_dict[column] = mod_columns_dict[column]
+                    mod_parameter_dict[column] = mod
             if 'objective' in row['ftype']:
                 obj_list.append(mod_parameter_dict[self.VARIABLE])
             elif 'ineq_constraint' in row['ftype']:
