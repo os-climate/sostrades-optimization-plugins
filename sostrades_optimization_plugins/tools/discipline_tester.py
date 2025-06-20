@@ -31,7 +31,10 @@ def discipline_test_function(module_path: str, name: str, model_name: str,
                              jacobian_test: bool, coupling_inputs: List[str] = [], coupling_outputs: List[str] = [],
                              pickle_name: str = None, pickle_directory: str = None,
                              override_dump_jacobian: bool = False,
-                             show_graphs: bool = True, gradients_tuning: bool = False):
+                             show_graphs: bool = True, gradients_tuning: bool = False,
+                             derr_approx='complex_step', step=1e-15,
+                             threshold=1e-8
+                             ):
     """
     Function to perform a discipline test, mimicking the behavior of the DisciplineTestTemplate class.
 
@@ -93,8 +96,9 @@ def discipline_test_function(module_path: str, name: str, model_name: str,
             filename=pickle_name,
             local_data=disc_techno.local_data,
             discipline=disc_techno,
-            step=1e-15,
-            derr_approx='complex_step',
+            step=step,
+            derr_approx=derr_approx,
+            threshold=threshold,
             inputs=get_full_varnames(coupling_inputs),
             outputs=get_full_varnames(coupling_outputs)
         )

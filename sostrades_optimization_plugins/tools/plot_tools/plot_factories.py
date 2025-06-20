@@ -113,7 +113,10 @@ def create_sankey_diagram_at_year(
                     cons_value = cons_df[flow_type].to_numpy()[0]
 
                     if prod_value > 0 and cons_value > 0:
-                        flow_value = cons_value  # assume we have enough production for all consumptions
+                        if consumer == 'available':
+                            flow_value = prod_value
+                        else:
+                            flow_value = cons_value  # assume we have enough production for all consumptions
 
                         # Handle output node splitting
                         target_node = consumer
