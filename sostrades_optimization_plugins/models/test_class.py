@@ -117,8 +117,8 @@ class GenericDisciplinesTestClass(unittest.TestCase):
                     concat_result[output][input].append(null_gradient_bool)
 
         always_null_gradients = {}
-        for output in concat_result.keys():
-            for input, list_is_null_bools in concat_result[output].items():
+        for output, value in concat_result.items():
+            for input, list_is_null_bools in value.items():
                 if all(list_is_null_bools):
                     if output not in always_null_gradients:
                         always_null_gradients[output] = []
