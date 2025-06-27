@@ -241,7 +241,7 @@ class DifferentiableModel:
         self._reset()
         self.dataframes_inputs_colnames = {}
         self.inputs = self._process_input_dict(inputs_in)
-
+        self.inputs_in = inputs_in
     def _process_input_dict(self, input_dict: dict, parent_key: str = "") -> dict:
         """Recursively process input dictionary to handle nested structures.
 
